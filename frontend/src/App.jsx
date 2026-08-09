@@ -1,5 +1,5 @@
 import "./App.css";
-
+import { Link } from "react-router-dom";
 import {
   BrowserRouter,
   Routes,
@@ -18,7 +18,6 @@ import Checkout from "./pages/Checkout";
 
 import { CartProvider } from "./context/CartContext";
 import OrderConfirmation from "./pages/OrderConfirmation";
-
 function Home() {
   return (
     <>
@@ -30,26 +29,44 @@ function Home() {
     </>
   );
 }
-
-
 function App() {
   return (
     <BrowserRouter>
-
       <CartProvider>
-
         <Routes>
-
-          {/* HOME */}
-
           <Route
             path="/"
             element={<Home />}
           />
+          <Route
+  path="/men"
+  element={
+    <>
+      <Navbar />
+      <Shop category="men" />
+    </>
+  }
+/>
 
+<Route
+  path="/women"
+  element={
+    <>
+      <Navbar />
+      <Shop category="women" />
+    </>
+  }
+/>
 
-          {/* PRODUCT DETAILS */}
-
+<Route
+  path="/kids"
+  element={
+    <>
+      <Navbar />
+      <Shop category="kids" />
+    </>
+  }
+/>
           <Route
             path="/product/:id"
             element={
@@ -59,10 +76,6 @@ function App() {
               </>
             }
           />
-
-
-          {/* CART */}
-
           <Route
             path="/cart"
             element={
@@ -72,10 +85,6 @@ function App() {
               </>
             }
           />
-
-
-          {/* CHECKOUT */}
-
           <Route
             path="/checkout"
             element={
@@ -85,16 +94,52 @@ function App() {
               </>
             }
           />
+<Route
+  path="/shop"
+  element={
+    <>
+      <Navbar />
+      <Shop category="all" />
+    </>
+  }
+/>
+
+<Route
+  path="/men"
+  element={
+    <>
+      <Navbar />
+      <Shop category="men" />
+    </>
+  }
+/>
+
+<Route
+  path="/women"
+  element={
+    <>
+      <Navbar />
+      <Shop category="women" />
+    </>
+  }
+/>
+
+<Route
+  path="/kids"
+  element={
+    <>
+      <Navbar />
+      <Shop category="kids" />
+    </>
+  }
+/>
             <Route
                    path="/order-confirmation"
                      element={<OrderConfirmation />}
                         />
         </Routes>
-
       </CartProvider>
-
     </BrowserRouter>
   );
 }
-
 export default App;

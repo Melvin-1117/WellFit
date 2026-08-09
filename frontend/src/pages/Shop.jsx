@@ -1,24 +1,28 @@
-import { useState } from "react";
 import Products from "../components/Products";
 import products from "../data/products";
-
-function Shop() {
-  const [activeCategory, setActiveCategory] = useState("all");
-
+import { Link } from "react-router-dom";
+function Shop({ category = "all" }) {
   const filteredProducts =
-    activeCategory === "all"
+    category === "all"
       ? products
       : products.filter(
-          (product) => product.category === activeCategory
+          (product) => product.category === category
         );
+
+  const categoryTitle =
+    category === "all"
+      ? "Shop Our Collection"
+      : `Shop ${category.charAt(0).toUpperCase() + category.slice(1)}`;
 
   return (
     <section className="shop-section">
-
+      
       <div className="shop-header">
-        <p className="shop-label">OUR COLLECTION</p>
+        <p className="shop-label">
+          OUR COLLECTION
+        </p>
 
-        <h2>Shop Our Collection</h2>
+        <h2>{categoryTitle}</h2>
 
         <p className="shop-description">
           Discover styles designed for every moment.
@@ -27,36 +31,23 @@ function Shop() {
 
       <div className="category-filters">
 
-        <button
-          className={activeCategory === "all" ? "active" : ""}
-          onClick={() => setActiveCategory("all")}
-        >
-          ALL
-        </button>
+  <Link to="/shop">
+    ALL
+  </Link>
 
-        <button
-          className={activeCategory === "men" ? "active" : ""}
-          onClick={() => setActiveCategory("men")}
-        >
-          MEN
-        </button>
+  <Link to="/men">
+    MEN
+  </Link>
 
-        <button
-          className={activeCategory === "women" ? "active" : ""}
-          onClick={() => setActiveCategory("women")}
-        >
-          WOMEN
-        </button>
+  <Link to="/women">
+    WOMEN
+  </Link>
 
-        <button
-          className={activeCategory === "kids" ? "active" : ""}
-          onClick={() => setActiveCategory("kids")}
-        >
-          KIDS
-        </button>
+  <Link to="/kids">
+    KIDS
+  </Link>
 
-      </div>
-
+</div>
       <div className="product-grid">
 
         {filteredProducts.map((product) => (

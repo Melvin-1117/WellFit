@@ -1454,3 +1454,22 @@
     height: 1px;
   }
 }
+.category-filters {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin: 35px 0 50px;
+}
+
+.category-filters a {
+  color: #111827;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  transition: 0.2s ease;
+}
+
+.category-filters a:hover {
+  color: #6d28d9;
+}
