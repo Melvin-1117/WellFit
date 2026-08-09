@@ -1,7 +1,13 @@
 import { useCart } from "../context/CartContext";
+import { Link } from "react-router-dom";
 
 function Cart() {
-  const { cart } = useCart();
+  const {
+    cart,
+    increaseQuantity,
+    decreaseQuantity,
+    removeFromCart,
+  } = useCart();
 
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -11,11 +17,21 @@ function Cart() {
   if (cart.length === 0) {
     return (
       <section className="cart-page empty-cart">
-        <h1>Your Cart</h1>
 
-        <p>Your cart is currently empty.</p>
+        <p className="cart-label">
+          YOUR SHOPPING BAG
+        </p>
 
-        <a href="/">CONTINUE SHOPPING</a>
+        <h1>Your Cart Is Empty</h1>
+
+        <p>
+          Looks like you haven't added anything yet.
+        </p>
+
+        <Link to="/">
+          CONTINUE SHOPPING
+        </Link>
+
       </section>
     );
   }
@@ -28,56 +44,160 @@ function Cart() {
         <h1>Your Cart</h1>
       </div>
 
+
       <div className="cart-layout">
+
+        {/* CART ITEMS */}
 
         <div className="cart-items">
 
-          {cart.map((item, index) => (
+          {cart.map((item) => (
+
             <div
               className="cart-item"
-              key={`${item.id}-${item.size}-${index}`}
+              key={`${item.id}-${item.size}`}
             >
+
+              {/* Product Image */}
+
               <img
                 src={item.image}
                 alt={item.name}
               />
 
+
+              {/* Product Information */}
+
               <div className="cart-item-info">
-                <h3>{item.name}</h3>
 
-                <p>Size: {item.size}</p>
+                <h3>
+                  {item.name}
+                </h3>
 
-                <p>Quantity: {item.quantity}</p>
-
-                <p className="cart-item-price">
-                  ₹{item.price * item.quantity}
+                <p>
+                  Size: {item.size}
                 </p>
+
+                <p className="cart-item-unit-price">
+                  ₹{item.price}
+                </p>
+
+
+                {/* Quantity + Remove */}
+
+                <div className="cart-item-actions">
+
+                  <div className="cart-quantity">
+
+                    <button
+                      onClick={() =>
+                        decreaseQuantity(
+                          item.id,
+                          item.size
+                        )
+                      }
+                    >
+                      −
+                    </button>
+
+                    <span>
+                      {item.quantity}
+                    </span>
+
+                    <button
+                      onClick={() =>
+                        increaseQuantity(
+                          item.id,
+                          item.size
+                        )
+                      }
+                    >
+                      +
+                    </button>
+
+                  </div>
+
+
+                  <button
+                    className="remove-button"
+                    onClick={() =>
+                      removeFromCart(
+                        item.id,
+                        item.size
+                      )
+                    }
+                  >
+                    REMOVE
+                  </button>
+
+                </div>
+
               </div>
+
+
+              {/* Total for this item */}
+
+              <div className="cart-item-total">
+                ₹{item.price * item.quantity}
+              </div>
+
             </div>
+
           ))}
 
         </div>
 
+
+        {/* ORDER SUMMARY */}
+
         <div className="cart-summary">
 
-          <h2>Order Summary</h2>
+          <h2>
+            Order Summary
+          </h2>
+
 
           <div className="summary-row">
-            <span>Subtotal</span>
-            <span>₹{subtotal}</span>
+
+            <span>
+              Subtotal
+            </span>
+
+            <span>
+              ₹{subtotal}
+            </span>
+
           </div>
 
+
           <div className="summary-row">
-            <span>Shipping</span>
-            <span>FREE</span>
+
+            <span>
+              Shipping
+            </span>
+
+            <span>
+              FREE
+            </span>
+
           </div>
+
 
           <div className="summary-divider"></div>
 
+
           <div className="summary-total">
-            <span>Total</span>
-            <span>₹{subtotal}</span>
+
+            <span>
+              Total
+            </span>
+
+            <span>
+              ₹{subtotal}
+            </span>
+
           </div>
+
 
           <button className="checkout-button">
             PROCEED TO CHECKOUT

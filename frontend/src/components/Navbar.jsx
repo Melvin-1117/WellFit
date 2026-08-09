@@ -1,5 +1,5 @@
+import { Link } from "react-router-dom";
 import CartButton from "./CartButton";
-
 function Navbar() {
   return (
     <nav className="navbar">
@@ -9,10 +9,10 @@ function Navbar() {
       </div>
 
       <div className="navbar-links">
-        <a href="/">Home</a>
-        <a href="/men">Men</a>
-        <a href="/women">Women</a>
-        <a href="/kids">Kids</a>
+        <Link to="/">Home</Link>
+        <Link to="/men">Men</Link>
+        <Link to="/women">Women</Link>
+        <Link to="/kids">Kids</Link>
       </div>
 
       <div className="navbar-actions">
