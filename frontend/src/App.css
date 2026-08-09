@@ -1,46 +1,62 @@
+@import url('https://fonts.googleapis.com/css2?family=Beau+Rivage&family=Playfair+Display:wght@600&family=Poppins:wght@500;600&display=swap');
 .navbar {
-  height: 72px;
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
-  padding: 0 40px;
-  background-color: var(--color-dark);
+  justify-content: space-between;
+  padding: 4px 40px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
 }
 
 .navbar-logo {
-  font-size: 26px;
+  font-family: 'Beau Rivage', cursive;
+  font-size: 40px;
   font-weight: 700;
-  color: var(--color-pale-blue);
+  color: #111827;
 }
 
 .navbar-links {
   display: flex;
-  align-items: center;
-  gap: 28px;
-  margin-left: auto;
+  gap: 32px;
 }
 
 .navbar-links a {
   text-decoration: none;
-  color: var(--color-pale-blue);
-  font-size: 16px;
+  color: #111827;
+  font-size: 17px;
+  font-weight: 500;
+  transition: opacity 0.2s ease;
+}
+
+.navbar-links a:hover {
+  opacity: 0.6;
 }
 
 .navbar-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-left: auto;
+  gap: 18px;
 }
 
-.login-button {
-  padding: 9px 20px;
-  border: 1px solid var(--color-light-blue);
-  border-radius: 6px;
-  background-color: transparent;
-  color: var(--color-pale-blue);
-  font-size: 15px;
+.navbar-actions button {
+  padding: 8px 18px;
+  border: 1px solid #111827;
+  border-radius: 20px;
+  background: transparent;
+  color: #111827;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.navbar-actions button:hover {
+  background: #111827;
+  color: white;
 }
 
 .login-button:hover {
@@ -54,17 +70,249 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
   border: none;
   background-color: transparent;
-
   color: var(--color-pale-blue);
   font-size: 22px;
-
   cursor: pointer;
   border-radius: 6px;
 }
 
 .cart-button:hover {
   background-color: var(--color-navy);
+}
+
+.hero {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 72px);
+  overflow: hidden;
+}
+
+.hero-track {
+  position: relative;
+  width: 100%;
+}
+
+.hero-slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1.03);
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+  z-index: 0;
+}
+
+.hero-slide:first-child {
+  position: relative;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1);
+  z-index: 1;
+  transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-content > * {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.hero-slide.active .hero-content > * {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 0.25s;
+}
+
+.hero-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hero-content {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  z-index: 1;
+  padding: 60px;
+  box-sizing: border-box;
+}
+
+.hero-label {
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}
+
+.hero-content h1 {
+  margin: 0 0 18px;
+  font-size: 48px;
+  line-height: 1.05;
+  font-weight: 700;
+}
+
+.hero-description {
+  max-width: 380px;
+  margin-bottom: 28px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.hero-prev,
+.hero-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 45px;
+  height: 45px;
+  border: none;
+  border-radius: 50%;
+  background-color: rgba(2, 16, 36, 0.7);
+  color: var(--color-pale-blue);
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  transition: background-color 0.2s ease;
+}
+
+.hero-prev {
+  left: 25px;
+}
+
+.hero-next {
+  right: 25px;
+}
+
+.hero-prev:hover,
+.hero-next:hover {
+  background-color: var(--color-navy);
+}
+
+.shop-button {
+  position: static;
+  align-self: flex-start;
+  padding: 12px 24px;
+  border: 1px solid var(--color-dark);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.25);
+  color: var(--color-dark);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.shop-button:hover {
+  background: var(--color-dark);
+  color: white;
+}
+
+.hero-slide-1 .hero-content {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 70px;
+}
+
+.hero-tagline-left,
+.hero-tagline-right {
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+}
+
+.hero-tagline-left {
+  align-items: flex-start;
+  text-align: left;
+  font-family: 'Playfair Display', serif;
+}
+
+.hero-tagline-right {
+  align-items: flex-end;
+  text-align: right;
+  font-family: 'Poppins', sans-serif;
+}
+
+.hero-tagline-left .hero-label,
+.hero-tagline-right .hero-label {
+  margin-bottom: 14px;
+}
+
+.hero-tagline-left h1,
+.hero-tagline-right h1 {
+  margin: 0 0 16px;
+  font-size: 40px;
+  line-height: 1.1;
+}
+
+.hero-tagline-left .hero-description,
+.hero-tagline-right .hero-description {
+  margin-bottom: 24px;
+}
+
+.hero-tagline-left .shop-button {
+  align-self: flex-start;
+}
+
+.hero-tagline-right .shop-button {
+  align-self: flex-end;
+}
+
+.hero-slide-2 .hero-content {
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+  padding: 0 0 0 90px;
+}
+
+.hero-slide-3 .hero-content {
+  justify-content: center;
+  align-items: flex-end;
+  text-align: right;
+  padding: 0 100px 0 0;
+}
+
+.hero-slide-3 .hero-description {
+  margin-left: auto;
+}
+
+.hero-slide-3 .shop-button {
+  align-self: flex-end;
+}
+
+.hero-slide-4 .hero-content {
+  justify-content: flex-start;
+  align-items: center;
+  text-align: center;
+  padding: 60px 0 0;
+}
+
+.hero-slide-4 .hero-content {
+  justify-content: flex-start;
+  align-items: flex-end;
+  text-align: right;
+
+  padding: 70px 8% 0 0;
+}
+
+.hero-slide-4 .hero-description {
+  margin-left: auto;
+}
+
+.hero-slide-4 .shop-button {
+  align-self: flex-end;
 }
