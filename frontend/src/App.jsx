@@ -14,6 +14,7 @@ import Categories from "./components/Categories";
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 
 import { CartProvider } from "./context/CartContext";
 
@@ -40,12 +41,15 @@ function App() {
         <Routes>
 
           {/* HOME */}
+
           <Route
             path="/"
             element={<Home />}
           />
 
+
           {/* PRODUCT DETAILS */}
+
           <Route
             path="/product/:id"
             element={
@@ -56,13 +60,28 @@ function App() {
             }
           />
 
+
           {/* CART */}
+
           <Route
             path="/cart"
             element={
               <>
                 <Navbar />
                 <Cart />
+              </>
+            }
+          />
+
+
+          {/* CHECKOUT */}
+
+          <Route
+            path="/checkout"
+            element={
+              <>
+                <Navbar />
+                <Checkout />
               </>
             }
           />
