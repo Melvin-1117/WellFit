@@ -487,3 +487,188 @@
   color: #021024;
   transform: translateY(-3px);
 }
+
+/* Shop page */
+
+.shop-section {
+  padding: 90px 70px;
+  background: #ffffff;
+}
+
+.shop-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.shop-label {
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: #555;
+}
+
+.shop-header h2 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.shop-description {
+  margin-top: 12px;
+  font-size: 15px;
+  color: #777;
+}
+
+
+/* product*/
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+.product-card {
+  background: #ffffff;
+  overflow: hidden;
+  cursor: pointer;
+}
+.product-image-container {
+  position: relative;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.product-image {
+  width: 100%;
+  height: 420px;
+  display: block;
+  object-fit: cover;
+
+  transition: transform 0.5s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.product-quick-view {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+
+  transform: translate(-50%, 20px);
+
+  padding: 11px 24px;
+
+  border: none;
+  background: white;
+  color: #111827;
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+
+  opacity: 0;
+
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+
+  cursor: pointer;
+}
+
+.product-card:hover .product-quick-view {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.product-info {
+  padding: 18px 4px;
+}
+
+.product-info h3 {
+  margin: 0 0 7px;
+
+  font-size: 16px;
+  font-weight: 500;
+
+  color: #111827;
+}
+
+.product-info p {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #111827;
+}
+
+@media (max-width: 900px) {
+
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .shop-section {
+    padding: 70px 35px;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shop-section {
+    padding: 60px 20px;
+  }
+
+  .shop-header h2 {
+    font-size: 32px;
+  }
+
+}
+
+.category-filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 12px;
+
+  margin-bottom: 45px;
+}
+
+.category-filters button {
+  padding: 10px 22px;
+
+  border: 1px solid #d8d8d8;
+  border-radius: 25px;
+
+  background: white;
+  color: #111827;
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+}
+
+.category-filters button:hover {
+  border-color: #021024;
+}
+
+.category-filters button.active {
+  background: #021024;
+  color: white;
+  border-color: #021024;
+}

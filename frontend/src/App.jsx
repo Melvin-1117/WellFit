@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import Services from "./components/Services";
 import Categories from "./components/Categories";
+import Shop from "./pages/Shop";
 function App() {
   return (
     <div>
@@ -10,6 +11,7 @@ function App() {
       <Hero />
       <Services />
       <Categories />
+      <Shop />
     </div>
   );
 }
