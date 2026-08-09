@@ -3,9 +3,8 @@ import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 
 function Checkout() {
-  const { cart } = useCart();
+  const { cart, clearCart } = useCart();
   const navigate = useNavigate();
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -56,10 +55,12 @@ function Checkout() {
         );
       }
       console.log("Order created:", data);
-      alert(
-        `Order placed successfully! Order ID: ${data.order.id}`
-      );
-      navigate("/");
+      clearCart();
+      navigate("/order-confirmation", {
+        state: {
+         order: data.order,
+       },
+        });
    } catch (error) {
   console.error("Order failed:", error);
 

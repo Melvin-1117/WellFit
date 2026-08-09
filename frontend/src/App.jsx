@@ -17,7 +17,7 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 
 import { CartProvider } from "./context/CartContext";
-
+import OrderConfirmation from "./pages/OrderConfirmation";
 
 function Home() {
   return (
@@ -85,7 +85,10 @@ function App() {
               </>
             }
           />
-
+            <Route
+                   path="/order-confirmation"
+                     element={<OrderConfirmation />}
+                        />
         </Routes>
 
       </CartProvider>

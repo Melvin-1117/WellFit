@@ -157,3 +157,38 @@ app.post("/api/orders", async (req, res) => {
     });
   }
 });
+app.get("/api/orders", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        order_items (*)
+      `)
+      .order("created_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      console.error("ORDERS FETCH ERROR:", error);
+
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      orders: data,
+    });
+
+  } catch (error) {
+    console.error("ORDERS ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
