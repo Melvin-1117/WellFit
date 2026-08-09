@@ -15,12 +15,10 @@ function Checkout() {
     state: "",
     pincode: "",
   });
-
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
-
   const handleChange = (event) => {
     const { name, value } = event.target;
 
@@ -29,63 +27,76 @@ function Checkout() {
       [name]: value,
     }));
   };
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-
     if (cart.length === 0) {
       alert("Your cart is empty.");
       navigate("/");
       return;
     }
+    try {
+      const response = await fetch(
+        "http://localhost:5000/api/orders",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            customer: formData,
+            items: cart,
+            total: subtotal,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Failed to place order"
+        );
+      }
+      console.log("Order created:", data);
+      alert(
+        `Order placed successfully! Order ID: ${data.order.id}`
+      );
+      navigate("/");
+   } catch (error) {
+  console.error("Order failed:", error);
 
-    console.log("Order details:", {
-      customer: formData,
-      items: cart,
-      total: subtotal,
-    });
-
-    alert("Order placed successfully!");
-
-    navigate("/");
+  alert(
+    `Order failed: ${error.message}`
+  );
+}
   };
-
   if (cart.length === 0) {
     return (
       <section className="checkout-empty">
         <h1>Your cart is empty</h1>
-
         <p>
           Add some products before proceeding to checkout.
         </p>
-
         <Link to="/">
           CONTINUE SHOPPING
         </Link>
+
       </section>
     );
   }
-
   return (
     <section className="checkout-page">
-
       <div className="checkout-header">
         <p>COMPLETE YOUR ORDER</p>
         <h1>Checkout</h1>
       </div>
-
       <div className="checkout-layout">
-
+        {/* CUSTOMER FORM */}
         <form
           className="checkout-form"
           onSubmit={handleSubmit}
         >
-
           <h2>Contact Information</h2>
-
           <div className="form-group">
             <label>Full Name</label>
-
             <input
               type="text"
               name="name"
@@ -95,12 +106,9 @@ function Checkout() {
               required
             />
           </div>
-
           <div className="form-row">
-
             <div className="form-group">
               <label>Email</label>
-
               <input
                 type="email"
                 name="email"
@@ -110,10 +118,8 @@ function Checkout() {
                 required
               />
             </div>
-
             <div className="form-group">
               <label>Phone</label>
-
               <input
                 type="tel"
                 name="phone"
@@ -123,16 +129,12 @@ function Checkout() {
                 required
               />
             </div>
-
           </div>
-
           <h2 className="shipping-title">
             Shipping Address
           </h2>
-
           <div className="form-group">
             <label>Address</label>
-
             <textarea
               name="address"
               value={formData.address}
@@ -142,12 +144,9 @@ function Checkout() {
               required
             />
           </div>
-
           <div className="form-row">
-
             <div className="form-group">
               <label>City</label>
-
               <input
                 type="text"
                 name="city"
@@ -157,10 +156,8 @@ function Checkout() {
                 required
               />
             </div>
-
             <div className="form-group">
               <label>State</label>
-
               <input
                 type="text"
                 name="state"
@@ -170,12 +167,9 @@ function Checkout() {
                 required
               />
             </div>
-
           </div>
-
           <div className="form-group">
             <label>PIN Code</label>
-
             <input
               type="text"
               name="pincode"
@@ -185,69 +179,52 @@ function Checkout() {
               required
             />
           </div>
-
           <button
             type="submit"
             className="place-order-button"
           >
             PLACE ORDER
           </button>
-
         </form>
-
-
+        {/* ORDER SUMMARY */}
         <div className="checkout-summary">
-
           <h2>Your Order</h2>
-
           <div className="checkout-items">
-
             {cart.map((item) => (
               <div
                 className="checkout-item"
                 key={`${item.id}-${item.size}`}
               >
-
                 <img
                   src={item.image}
                   alt={item.name}
                 />
-
                 <div>
                   <h3>{item.name}</h3>
-
                   <p>
                     Size: {item.size}
                   </p>
-
                   <p>
                     Qty: {item.quantity}
                   </p>
                 </div>
-
-                <span>
+               <span>
                   ₹{item.price * item.quantity}
                 </span>
-
               </div>
             ))}
-
           </div>
-
           <div className="checkout-divider"></div>
-
           <div className="checkout-total">
-            <span>Total</span>
-
+            <span>
+              Total
+            </span>
             <span>
               ₹{subtotal}
             </span>
           </div>
-
         </div>
-
       </div>
-
     </section>
   );
 }

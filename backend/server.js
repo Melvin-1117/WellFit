@@ -1,0 +1,159 @@
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const supabase = require("./supabase");
+
+const app = express();
+
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({
+    message: "WellFit backend is running",
+  });
+});
+
+app.get("/api/test-supabase", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .limit(1);
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(
+    `WellFit backend running on http://localhost:${PORT}`
+  );
+});
+
+app.get("/api/products", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      });
+
+    if (error) {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      products: data,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+app.post("/api/orders", async (req, res) => {
+  try {
+    const {
+      customer,
+      items,
+      total,
+    } = req.body;
+
+    // Basic validation
+    if (!customer || !items || items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid order data",
+      });
+    }
+
+    // Create the order
+    const { data: order, error: orderError } =
+      await supabase
+        .from("orders")
+        .insert([
+          {
+            customer_name: customer.name,
+            email: customer.email,
+            phone: customer.phone,
+            address: customer.address,
+            city: customer.city,
+            state: customer.state,
+            pincode: customer.pincode,
+            total: total,
+          },
+        ])
+        .select()
+        .single();
+
+    if (orderError) {
+      return res.status(500).json({
+        success: false,
+        message: orderError.message,
+      });
+    }
+
+    // Create order items
+    const orderItems = items.map((item) => ({
+      order_id: order.id,
+      product_id: item.id,
+      product_name: item.name,
+      size: item.size,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+
+    const { error: itemsError } =
+      await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+    if (itemsError) {
+      return res.status(500).json({
+        success: false,
+        message: itemsError.message,
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Order created successfully",
+      order,
+    });
+
+  } catch (error) {
+
+    console.error("Order error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+    });
+  }
+});
