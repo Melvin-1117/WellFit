@@ -1,3 +1,5 @@
+import CartButton from "./CartButton";
+
 function Navbar() {
   return (
     <nav className="navbar">
@@ -14,11 +16,11 @@ function Navbar() {
       </div>
 
       <div className="navbar-actions">
-        <button className="login-button">Login</button>
-
-        <button className="cart-button" aria-label="Shopping cart">
-          🛒
+        <button className="login-button">
+          Login
         </button>
+
+        <CartButton />
       </div>
 
     </nav>

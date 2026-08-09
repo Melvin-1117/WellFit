@@ -1,14 +1,13 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import products from "../data/products";
-
+import { useCart } from "../context/CartContext";
 function ProductDetails() {
   const { id } = useParams();
-
+  const { addToCart } = useCart();
   const product = products.find(
     (item) => item.id === Number(id)
   );
-
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
 
@@ -83,9 +82,22 @@ function ProductDetails() {
             </button>
           </div>
         </div>
-        <button className="add-to-cart-button">
-          ADD TO CART
+        <button
+        className="add-to-cart-button"
+        onClick={() => {
+            if (!selectedSize) {
+            alert("Please select a size");
+            return;
+            }
+
+            addToCart(product, selectedSize, quantity);
+
+            alert("Product added to cart!");
+        }}
+        >
+             ADD TO CART
         </button>
+        
       </div>
     </section>
   );

@@ -13,6 +13,9 @@ import Categories from "./components/Categories";
 
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
+import Cart from "./pages/Cart";
+
+import { CartProvider } from "./context/CartContext";
 
 
 function Home() {
@@ -32,24 +35,41 @@ function App() {
   return (
     <BrowserRouter>
 
-      <Routes>
+      <CartProvider>
 
-        <Route
-          path="/"
-          element={<Home />}
-        />
+        <Routes>
 
-        <Route
-          path="/product/:id"
-          element={
-            <>
-              <Navbar />
-              <ProductDetails />
-            </>
-          }
-        />
+          {/* HOME */}
+          <Route
+            path="/"
+            element={<Home />}
+          />
 
-      </Routes>
+          {/* PRODUCT DETAILS */}
+          <Route
+            path="/product/:id"
+            element={
+              <>
+                <Navbar />
+                <ProductDetails />
+              </>
+            }
+          />
+
+          {/* CART */}
+          <Route
+            path="/cart"
+            element={
+              <>
+                <Navbar />
+                <Cart />
+              </>
+            }
+          />
+
+        </Routes>
+
+      </CartProvider>
 
     </BrowserRouter>
   );
