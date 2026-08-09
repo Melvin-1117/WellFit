@@ -22,9 +22,12 @@ function Navbar() {
       </div>
 
       <div className="navbar-actions">
-        <button className="login-button">
-          Login
-        </button>
+        <Link
+  to="/login"
+  className="login-button"
+>
+  Login
+</Link>
 
         <CartButton />
       </div>

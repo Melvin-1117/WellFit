@@ -18,6 +18,7 @@ import Checkout from "./pages/Checkout";
 
 import { CartProvider } from "./context/CartContext";
 import OrderConfirmation from "./pages/OrderConfirmation";
+import Login from "./pages/Login";
 function Home() {
   return (
     <>
@@ -47,7 +48,15 @@ function App() {
     </>
   }
 />
-
+<Route
+  path="/login"
+  element={
+    <>
+      <Navbar />
+      <Login />
+    </>
+  }
+/>
 <Route
   path="/women"
   element={
