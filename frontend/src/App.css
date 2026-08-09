@@ -316,3 +316,61 @@
 .hero-slide-4 .shop-button {
   align-self: flex-end;
 }
+.services {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  padding: 32px 8%;
+
+  background: #ffffff;
+}
+
+.service {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  padding: 0 40px;
+
+  border-right: 1px solid #e5e5e5;
+}
+
+.service:last-child {
+  border-right: none;
+}
+
+.service-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 10px;
+
+  font-size: 22px;
+  color: #111827;
+}
+
+.service h3 {
+  margin: 0 0 6px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #111827;
+}
+
+.service p {
+  margin: 0;
+
+  max-width: 220px;
+
+  font-size: 12px;
+  line-height: 1.5;
+
+  color: #777;
+}
