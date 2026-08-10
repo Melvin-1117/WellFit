@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
-
+import { supabase } from "../lib/supabase";
 function Checkout() {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
@@ -33,7 +33,17 @@ function Checkout() {
       navigate("/");
       return;
     }
+  
     try {
+        const {
+  data: { session },
+} = await supabase.auth.getSession();
+
+if (!session) {
+  alert("Please login before placing an order.");
+  navigate("/login");
+  return;
+}
       const response = await fetch(
         "http://localhost:5000/api/orders",
         {
@@ -42,10 +52,11 @@ function Checkout() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            customer: formData,
-            items: cart,
-            total: subtotal,
-          }),
+  customer: formData,
+  items: cart,
+  total: subtotal,
+  accessToken: session.access_token,
+}),
         }
       );
       const data = await response.json();

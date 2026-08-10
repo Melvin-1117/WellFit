@@ -15,11 +15,14 @@ import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
+import Orders from "./pages/Orders";
 
 import { CartProvider } from "./context/CartContext";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EmailConfirmed from "./pages/EmailConfirmed";
+import ProtectedRoute from "./components/ProtectedRoute";
 function Home() {
   return (
     <>
@@ -47,6 +50,15 @@ function App() {
       <Navbar />
       <Shop category="men" />
     </>
+  }
+/>
+<Route
+  path="/orders"
+  element={
+    <ProtectedRoute>
+      <Navbar />
+      <Orders />
+    </ProtectedRoute>
   }
 />
 <Route
@@ -85,6 +97,7 @@ function App() {
     </>
   }
 />
+
           <Route
             path="/product/:id"
             element={
@@ -112,6 +125,15 @@ function App() {
               </>
             }
           />
+          <Route
+  path="/email-confirmed"
+  element={
+    <>
+      <Navbar />
+      <EmailConfirmed />
+    </>
+  }
+/>
 <Route
   path="/shop"
   element={

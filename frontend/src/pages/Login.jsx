@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "../lib/supabase";
 import "./Login.css";
+
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
@@ -15,10 +18,28 @@ function Login() {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    console.log("Login form:", formData);
+    try {
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log("Login successful:", data);
+
+      alert("Login successful!");
+    } catch (error) {
+      console.error("Login failed:", error);
+
+      alert(`Login failed: ${error.message}`);
+    }
   };
 
   return (
@@ -80,9 +101,9 @@ function Login() {
 
         <p className="auth-footer">
           Don't have an account?{" "}
-          <a href="/register">
+          <Link to="/register">
             Create one
-          </a>
+          </Link>
         </p>
 
       </div>

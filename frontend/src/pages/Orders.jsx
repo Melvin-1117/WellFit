@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-
+import { supabase } from "../lib/supabase";
+import "./Orders.css";
 function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -8,8 +9,23 @@ function Orders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
+        // Get the current logged-in session
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (!session) {
+          throw new Error("Please login to view your orders.");
+        }
+
+        // Send the access token to the backend
         const response = await fetch(
-          "http://localhost:5000/api/orders"
+          "http://localhost:5000/api/orders",
+          {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+            },
+          }
         );
 
         const data = await response.json();
@@ -35,7 +51,9 @@ function Orders() {
   if (loading) {
     return (
       <section className="orders-page">
-        <h1>Loading Orders...</h1>
+        <div className="orders-loading">
+          Loading Orders...
+        </div>
       </section>
     );
   }
@@ -43,8 +61,10 @@ function Orders() {
   if (error) {
     return (
       <section className="orders-page">
-        <h1>Unable to Load Orders</h1>
-        <p>{error}</p>
+        <div className="orders-error">
+          <h2>Unable to Load Orders</h2>
+          <p>{error}</p>
+        </div>
       </section>
     );
   }
@@ -85,11 +105,15 @@ function Orders() {
 
                 <div>
                   <span>ORDER ID</span>
-                  <strong>#{order.id}</strong>
+
+                  <strong>
+                    #{order.id}
+                  </strong>
                 </div>
 
                 <div>
                   <span>DATE</span>
+
                   <strong>
                     {new Date(
                       order.created_at
@@ -99,6 +123,7 @@ function Orders() {
 
                 <div>
                   <span>TOTAL</span>
+
                   <strong>
                     ₹{order.total}
                   </strong>

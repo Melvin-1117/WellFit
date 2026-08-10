@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./Login.css";
-
+import { supabase } from "../lib/supabase";
 function Register() {
   const [formData, setFormData] = useState({
     name: "",
@@ -19,16 +19,46 @@ function Register() {
     }));
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
+  const handleSubmit = async (event) => {
+  event.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match.");
-      return;
+  if (formData.password !== formData.confirmPassword) {
+    alert("Passwords do not match.");
+    return;
+  }
+
+  try {
+    const { data, error } = await supabase.auth.signUp({
+  email: formData.email,
+  password: formData.password,
+
+  options: {
+    emailRedirectTo:
+      "http://localhost:5173/email-confirmed",
+
+    data: {
+      name: formData.name,
+    },
+  },
+});
+    if (error) {
+      throw error;
     }
 
-    console.log("Register form:", formData);
-  };
+    console.log("Registration successful:", data);
+
+    alert(
+      "Account created successfully! Please check your email if confirmation is required."
+    );
+
+  } catch (error) {
+    console.error("Registration failed:", error);
+
+    alert(
+      `Registration failed: ${error.message}`
+    );
+  }
+};
 
   return (
     <section className="auth-page">

@@ -17,32 +17,67 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/api/test-supabase", async (req, res) => {
+app.get("/api/orders", async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired session",
+      });
+    }
+
+    console.log("Fetching orders for user:", user.id);
+
     const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .limit(1);
+      .from("orders")
+      .select(`
+        *,
+        order_items (*)
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", {
+        ascending: false,
+      });
 
     if (error) {
+      console.error("ORDERS FETCH ERROR:", error);
+
       return res.status(500).json({
         success: false,
-        error: error.message,
+        message: error.message,
       });
     }
 
     res.json({
       success: true,
-      data,
+      orders: data,
     });
+
   } catch (error) {
+    console.error("ORDERS ERROR:", error);
+
     res.status(500).json({
       success: false,
-      error: error.message,
+      message: error.message,
     });
   }
 });
-
 app.listen(PORT, () => {
   console.log(
     `WellFit backend running on http://localhost:${PORT}`
@@ -80,11 +115,30 @@ app.get("/api/products", async (req, res) => {
 app.post("/api/orders", async (req, res) => {
   try {
     const {
-      customer,
-      items,
-      total,
-    } = req.body;
+  customer,
+  items,
+  total,
+  accessToken,
+} = req.body;
 
+if (!accessToken) {
+  return res.status(401).json({
+    success: false,
+    message: "Authentication required",
+  });
+}
+
+const {
+  data: { user },
+  error: userError,
+} = await supabase.auth.getUser(accessToken);
+
+if (userError || !user) {
+  return res.status(401).json({
+    success: false,
+    message: "Invalid or expired session",
+  });
+}
     // Basic validation
     if (!customer || !items || items.length === 0) {
       return res.status(400).json({
@@ -99,15 +153,16 @@ app.post("/api/orders", async (req, res) => {
         .from("orders")
         .insert([
           {
-            customer_name: customer.name,
-            email: customer.email,
-            phone: customer.phone,
-            address: customer.address,
-            city: customer.city,
-            state: customer.state,
-            pincode: customer.pincode,
-            total: total,
-          },
+  user_id: user.id,
+  customer_name: customer.name,
+  email: customer.email,
+  phone: customer.phone,
+  address: customer.address,
+  city: customer.city,
+  state: customer.state,
+  pincode: customer.pincode,
+  total: total,
+},
         ])
         .select()
         .single();

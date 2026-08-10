@@ -1,7 +1,14 @@
 import { Link } from "react-router-dom";
 import CartButton from "./CartButton";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    await logout();
+  };
+
   return (
     <nav className="navbar">
 
@@ -22,14 +29,35 @@ function Navbar() {
       </div>
 
       <div className="navbar-actions">
-        <Link
-  to="/login"
-  className="login-button"
->
-  Login
-</Link>
+
+        {user ? (
+          <>
+            <Link
+              to="/orders"
+              className="login-button"
+            >
+              My Orders
+            </Link>
+
+            <button
+              type="button"
+              className="login-button"
+              onClick={handleLogout}
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <Link
+            to="/login"
+            className="login-button"
+          >
+            Login
+          </Link>
+        )}
 
         <CartButton />
+
       </div>
 
     </nav>
