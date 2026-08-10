@@ -207,7 +207,7 @@ app.get("/api/products", async (req, res) => {
     let query = supabase.from("products").select("*").order("id", { ascending: true });
 
     if (category && category !== "all") {
-      query = query.eq("category", category.toLowerCase());
+      query = query.ilike("category", category.toLowerCase().trim());
     }
 
     const { data, error } = await query;

@@ -18,13 +18,19 @@ function Shop({ category = "all" }) {
         const url =
           category === "all"
             ? `${API_URL}/api/products`
-            : `${API_URL}/api/products?category=${category}`;
+            : `${API_URL}/api/products?category=${encodeURIComponent(category)}`;
 
         const res = await fetch(url);
         if (res.ok) {
           const data = await res.json();
           if (data.success) {
-            setProductsList(data.products || []);
+            let fetched = data.products || [];
+            if (category !== "all") {
+              fetched = fetched.filter(
+                (p) => p.category && p.category.toLowerCase().trim() === category.toLowerCase().trim()
+              );
+            }
+            setProductsList(fetched);
             setLoading(false);
             return;
           }
@@ -33,13 +39,13 @@ function Shop({ category = "all" }) {
         // Direct Supabase fallback for high availability in production
         let query = supabase.from("products").select("*").order("id", { ascending: true });
         if (category !== "all") {
-          query = query.eq("category", category.toLowerCase());
+          query = query.ilike("category", category.toLowerCase().trim());
         }
 
         const { data: dbData, error: dbErr } = await query;
 
-        if (dbData && dbData.length > 0) {
-          const formatted = dbData.map((p) => ({
+        if (dbData) {
+          let formatted = dbData.map((p) => ({
             id: p.id,
             name: p.name,
             price: Number(p.price),
@@ -48,6 +54,13 @@ function Shop({ category = "all" }) {
             image_url: p.image_url || p.image || "/products/men/item1.jpg",
             description: p.description || "",
           }));
+
+          if (category !== "all") {
+            formatted = formatted.filter(
+              (p) => p.category && p.category.toLowerCase().trim() === category.toLowerCase().trim()
+            );
+          }
+
           setProductsList(formatted);
         } else if (dbErr) {
           setError(dbErr.message);
