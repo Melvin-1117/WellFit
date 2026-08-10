@@ -6,6 +6,7 @@ import Footer from "./components/Footer";
 import Hero from "./components/Hero";
 import Services from "./components/Services";
 import Categories from "./components/Categories";
+import ScrollToTop from "./components/ScrollToTop";
 
 import Shop from "./pages/Shop";
 import ProductDetails from "./pages/ProductDetails";
@@ -17,6 +18,11 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import EmailConfirmed from "./pages/EmailConfirmed";
 import NotFound from "./pages/NotFound";
+
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Shipping from "./pages/Shipping";
+import Privacy from "./pages/Privacy";
 
 import { CartProvider } from "./context/CartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -47,6 +53,7 @@ function Layout({ children }) {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <CartProvider>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -145,6 +152,38 @@ function App() {
             element={
               <Layout>
                 <OrderConfirmation />
+              </Layout>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <Layout>
+                <About />
+              </Layout>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <Layout>
+                <Contact />
+              </Layout>
+            }
+          />
+          <Route
+            path="/shipping"
+            element={
+              <Layout>
+                <Shipping />
+              </Layout>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <Layout>
+                <Privacy />
               </Layout>
             }
           />

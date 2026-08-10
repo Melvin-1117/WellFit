@@ -23,10 +23,10 @@ function Footer() {
 
         <div className="footer-column">
           <h4>HELP & INFO</h4>
-          <a href="#about">About Us</a>
-          <a href="#contact">Contact Us</a>
-          <a href="#shipping">Shipping & Returns</a>
-          <a href="#privacy">Privacy Policy</a>
+          <Link to="/about">About Us</Link>
+          <Link to="/contact">Contact Us</Link>
+          <Link to="/shipping">Shipping & Returns</Link>
+          <Link to="/privacy">Privacy Policy</Link>
         </div>
 
         <div className="footer-column">
