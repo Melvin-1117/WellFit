@@ -239,11 +239,16 @@ app.get("/api/products", async (req, res) => {
 app.get("/api/products/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { data, error } = await supabase
-      .from("products")
-      .select("*")
-      .eq("id", id)
-      .single();
+    const numId = parseInt(id, 10);
+
+    let query = supabase.from("products").select("*");
+    if (!isNaN(numId)) {
+      query = query.eq("id", numId);
+    } else {
+      query = query.eq("id", id);
+    }
+
+    const { data, error } = await query.maybeSingle();
 
     if (error || !data) {
       return res.status(404).json({
