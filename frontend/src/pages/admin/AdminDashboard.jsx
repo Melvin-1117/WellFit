@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import { resolveImageUrl } from "../../utils/imageUrl";
 import "./Admin.css";
 
 function AdminDashboard() {
@@ -153,6 +154,7 @@ function AdminDashboard() {
         setOrders((prev) =>
           prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
         );
+        fetchAdminData(true);
       } else {
         showToast(data.message || "Failed to update order status", "error");
       }
@@ -339,7 +341,7 @@ function AdminDashboard() {
                       <tr key={product.id}>
                         <td>
                           <img
-                            src={product.image || product.image_url}
+                            src={resolveImageUrl(product.image || product.image_url)}
                             alt={product.name}
                             className="admin-product-thumb"
                             onError={(e) => {
@@ -389,7 +391,7 @@ function AdminDashboard() {
                 {filteredProducts.map((product) => (
                   <div key={product.id} className="admin-mobile-card">
                     <img
-                      src={product.image || product.image_url}
+                      src={resolveImageUrl(product.image || product.image_url)}
                       alt={product.name}
                       onError={(e) => {
                         e.target.src = "https://via.placeholder.com/70x90?text=No+Img";

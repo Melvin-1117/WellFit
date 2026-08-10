@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
+import { resolveImageUrl } from "../utils/imageUrl";
 
 function ProductDetails() {
   const { id } = useParams();
@@ -108,7 +109,7 @@ function ProductDetails() {
     <section className="product-details">
       <div className="product-details-image">
         <img
-          src={product.image || product.image_url}
+          src={resolveImageUrl(product.image || product.image_url)}
           alt={product.name}
           onError={(e) => {
             e.target.src = "https://via.placeholder.com/400x500?text=No+Image";

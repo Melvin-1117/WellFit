@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { resolveImageUrl } from "../utils/imageUrl";
 
 function Products({ product }) {
-  const imageUrl = product.image || product.image_url || "/products/men/item1.jpg";
+  const imageUrl = resolveImageUrl(product.image || product.image_url);
 
   return (
     <div className="product-card">

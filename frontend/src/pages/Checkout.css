@@ -222,3 +222,133 @@
     font-size: 34px;
   }
 }
+
+/* Coupon Section */
+.coupon-section {
+  padding: 20px 0;
+  border-top: 1px solid #eeeae4;
+  margin-top: 8px;
+}
+
+.coupon-section h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #172033;
+}
+
+.coupon-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.coupon-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #d8d4cd;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.coupon-input:focus {
+  border-color: #806b4d;
+}
+
+.coupon-apply-btn {
+  padding: 10px 18px;
+  background: #172033;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.coupon-apply-btn:hover {
+  background: #806b4d;
+}
+
+.coupon-apply-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coupon-applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+}
+
+.coupon-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.coupon-badge span:first-child {
+  font-size: 14px;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.coupon-desc {
+  font-size: 12px;
+  color: #059669;
+}
+
+.coupon-remove {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.coupon-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* Checkout Totals Breakdown */
+.checkout-totals-section {
+  padding-top: 16px;
+  border-top: 1px solid #eeeae4;
+}
+
+.checkout-subtotal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+  color: #555555;
+}
+
+.checkout-subtotal-row.discount-row {
+  color: #059669;
+  font-weight: 600;
+}
+
+.free-shipping {
+  color: #059669;
+  font-weight: 700;
+  font-size: 13px;
+}

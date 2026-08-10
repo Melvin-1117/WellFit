@@ -2,7 +2,61 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./Orders.css";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const ORDER_STEPS = ["Pending", "Processing", "Shipped", "Delivered"];
+
+function getStepIndex(status) {
+  if (!status) return 0;
+  const idx = ORDER_STEPS.findIndex(
+    (s) => s.toLowerCase() === status.toLowerCase()
+  );
+  return idx >= 0 ? idx : 0;
+}
+
+function OrderTracker({ status }) {
+  const currentStep = getStepIndex(status);
+  const isCancelled = status && status.toLowerCase() === "cancelled";
+
+  if (isCancelled) {
+    return (
+      <div className="order-tracker-cancelled">
+        <span className="cancelled-icon">✕</span>
+        <span>Order Cancelled</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="order-tracker">
+      <div className="tracker-steps">
+        {ORDER_STEPS.map((step, idx) => {
+          const isCompleted = idx <= currentStep;
+          const isActive = idx === currentStep;
+
+          return (
+            <div
+              key={step}
+              className={`tracker-step ${isCompleted ? "completed" : ""} ${isActive ? "active" : ""}`}
+            >
+              <div className="tracker-dot">
+                {isCompleted ? "✓" : idx + 1}
+              </div>
+              <span className="tracker-label">{step}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="tracker-progress-bar">
+        <div
+          className="tracker-progress-fill"
+          style={{ width: `${(currentStep / (ORDER_STEPS.length - 1)) * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 function Orders() {
   const [orders, setOrders] = useState([]);
@@ -20,21 +74,16 @@ function Orders() {
           throw new Error("Please login to view your orders.");
         }
 
-        const response = await fetch(
-          `${API_URL}/api/orders`,
-          {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-            },
-          }
-        );
+        const response = await fetch(`${API_URL}/api/orders`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
 
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(
-            data.message || "Failed to fetch orders"
-          );
+          throw new Error(data.message || "Failed to fetch orders");
         }
 
         setOrders(data.orders);
@@ -75,7 +124,7 @@ function Orders() {
       <div className="orders-header">
         <p className="orders-label">YOUR ACCOUNT</p>
         <h1>My Orders</h1>
-        <p>View your previous orders and purchases.</p>
+        <p>View your previous orders and track delivery progress.</p>
       </div>
 
       {orders.length === 0 ? (
@@ -96,7 +145,11 @@ function Orders() {
                 <div>
                   <span>DATE</span>
                   <strong>
-                    {new Date(order.created_at).toLocaleDateString()}
+                    {new Date(order.created_at).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </strong>
                 </div>
 
@@ -122,9 +175,8 @@ function Orders() {
                 ))}
               </div>
 
-              <div className="order-status">
-                <span>STATUS</span>
-                <strong>Order Placed</strong>
+              <div className="order-tracker-section">
+                <OrderTracker status={order.status || "Pending"} />
               </div>
             </div>
           ))}

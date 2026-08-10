@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import "./Admin.css";
@@ -8,6 +8,7 @@ function AdminProductForm() {
   const isEditMode = Boolean(id);
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -22,6 +23,8 @@ function AdminProductForm() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(isEditMode);
   const [errorMsg, setErrorMsg] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
     if (isEditMode) {
@@ -70,6 +73,105 @@ function AdminProductForm() {
         return { ...prev, sizes: [...prev.sizes, size] };
       }
     });
+  };
+
+  // Image upload handler (converts file to base64 and sends to backend)
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      setErrorMsg("Please upload a JPG, PNG, or WebP image file.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMsg("Image file must be smaller than 5MB.");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      setErrorMsg("");
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setErrorMsg("Session expired. Please log in again.");
+        return;
+      }
+
+      // Read file as base64
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Data = reader.result;
+
+        const res = await fetch(`${API_URL}/api/upload`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            imageData: base64Data,
+            fileName: file.name,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.imageUrl) {
+          setFormData((prev) => ({ ...prev, image: data.imageUrl }));
+        } else {
+          setErrorMsg(data.message || "Image upload failed.");
+        }
+
+        setUploading(false);
+      };
+
+      reader.onerror = () => {
+        setErrorMsg("Failed to read file.");
+        setUploading(false);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Upload error:", err);
+      setErrorMsg("Server error uploading image.");
+      setUploading(false);
+    }
+  };
+
+  // Drag & drop handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleImageUpload(files[0]);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleImageUpload(e.target.files[0]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -214,20 +316,60 @@ function AdminProductForm() {
             </div>
           </div>
 
+          {/* Image Upload Dropzone + URL Input */}
           <div className="form-group">
-            <label htmlFor="image">Image URL / Path</label>
+            <label>Product Image</label>
+
+            <div
+              className={`upload-dropzone ${dragActive ? "drag-active" : ""}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                style={{ display: "none" }}
+                onChange={handleFileSelect}
+              />
+
+              {uploading ? (
+                <div className="upload-status">
+                  <span className="upload-spinner">⏳</span>
+                  <p>Uploading image...</p>
+                </div>
+              ) : (
+                <div className="upload-content">
+                  <span className="upload-icon">📁</span>
+                  <p><strong>Drop an image here</strong> or click to browse</p>
+                  <span className="upload-hint">JPG, PNG, WebP · Max 5MB</span>
+                </div>
+              )}
+            </div>
+
+            <div className="upload-divider">
+              <span>OR</span>
+            </div>
+
             <input
               type="text"
               id="image"
               name="image"
               value={formData.image}
               onChange={handleChange}
-              placeholder="/products/men/item1.jpg or https://..."
+              placeholder="Paste image URL: /products/men/item1.jpg or https://..."
             />
+
             {formData.image && (
               <div className="image-preview-box">
                 <img
-                  src={formData.image}
+                  src={
+                    formData.image.startsWith("/uploads")
+                      ? `${API_URL}${formData.image}`
+                      : formData.image
+                  }
                   alt="Preview"
                   onError={(e) => {
                     e.target.src = "https://via.placeholder.com/120x140?text=Invalid+URL";
@@ -289,7 +431,7 @@ function AdminProductForm() {
             type="submit"
             className="btn-submit"
             style={{ marginTop: "12px" }}
-            disabled={loading}
+            disabled={loading || uploading}
           >
             {loading
               ? "Saving..."

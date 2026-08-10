@@ -22,10 +22,19 @@ function Checkout() {
 
   const [loading, setLoading] = useState(false);
 
+  // Coupon state
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponError, setCouponError] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
     0
   );
+
+  const discount = couponApplied ? couponApplied.discount : 0;
+  const finalTotal = couponApplied ? couponApplied.finalTotal : subtotal;
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -34,6 +43,50 @@ function Checkout() {
       ...previous,
       [name]: value,
     }));
+  };
+
+  // Coupon validation
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code.");
+      return;
+    }
+
+    try {
+      setCouponLoading(true);
+      setCouponError("");
+      setCouponApplied(null);
+
+      const res = await fetch(`${API_URL}/api/coupons/validate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: couponCode.trim(),
+          subtotal,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success && data.coupon) {
+        setCouponApplied(data.coupon);
+        setCouponError("");
+      } else {
+        setCouponError(data.message || "Invalid coupon code.");
+        setCouponApplied(null);
+      }
+    } catch (err) {
+      console.error("Coupon validation error:", err);
+      setCouponError("Unable to validate coupon. Try again.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponApplied(null);
+    setCouponCode("");
+    setCouponError("");
   };
 
   const handleSubmit = async (event) => {
@@ -68,7 +121,10 @@ function Checkout() {
         body: JSON.stringify({
           customer: formData,
           items: cart,
-          total: subtotal,
+          total: finalTotal,
+          subtotal: subtotal,
+          couponCode: couponApplied ? couponApplied.code : null,
+          discount: discount,
           accessToken: session.access_token,
         }),
       });
@@ -222,9 +278,81 @@ function Checkout() {
             </div>
           ))}
 
-          <div className="checkout-total">
-            <span>Total</span>
-            <strong>₹{subtotal}</strong>
+          {/* Coupon Code Section */}
+          <div className="coupon-section">
+            <h3>Have a Coupon?</h3>
+
+            {couponApplied ? (
+              <div className="coupon-applied">
+                <div className="coupon-badge">
+                  <span>🎉 {couponApplied.code}</span>
+                  <span className="coupon-desc">{couponApplied.description}</span>
+                </div>
+                <button
+                  type="button"
+                  className="coupon-remove"
+                  onClick={handleRemoveCoupon}
+                >
+                  ✕ Remove
+                </button>
+              </div>
+            ) : (
+              <div className="coupon-input-row">
+                <input
+                  type="text"
+                  className="coupon-input"
+                  placeholder="Enter coupon code"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase());
+                    setCouponError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleApplyCoupon();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className="coupon-apply-btn"
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading}
+                >
+                  {couponLoading ? "..." : "Apply"}
+                </button>
+              </div>
+            )}
+
+            {couponError && (
+              <p className="coupon-error">{couponError}</p>
+            )}
+          </div>
+
+          {/* Totals */}
+          <div className="checkout-totals-section">
+            <div className="checkout-subtotal-row">
+              <span>Subtotal</span>
+              <span>₹{subtotal}</span>
+            </div>
+
+            <div className="checkout-subtotal-row">
+              <span>Shipping</span>
+              <span className="free-shipping">FREE</span>
+            </div>
+
+            {discount > 0 && (
+              <div className="checkout-subtotal-row discount-row">
+                <span>Discount ({couponApplied?.code})</span>
+                <span>−₹{discount}</span>
+              </div>
+            )}
+
+            <div className="checkout-total">
+              <span>Total</span>
+              <strong>₹{finalTotal}</strong>
+            </div>
           </div>
         </div>
       </div>
