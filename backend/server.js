@@ -475,7 +475,7 @@ app.get("/api/admin/orders", async (req, res) => {
 
     const orders = (data || []).map((o) => ({
       ...o,
-      status: getOrderStatus(o.id),
+      status: o.status || getOrderStatus(o.id),
     }));
 
     res.json({
@@ -690,7 +690,7 @@ app.get("/api/orders", async (req, res) => {
 
     const orders = (data || []).map((o) => ({
       ...o,
-      status: getOrderStatus(o.id),
+      status: o.status || getOrderStatus(o.id),
     }));
 
     res.json({
