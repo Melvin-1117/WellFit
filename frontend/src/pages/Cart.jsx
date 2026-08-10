@@ -19,50 +19,39 @@ function Cart() {
   if (cart.length === 0) {
     return (
       <section className="cart-page empty-cart">
-
-        <p className="cart-label">
-          YOUR SHOPPING BAG
-        </p>
-
+        <p className="cart-label">YOUR SHOPPING BAG</p>
         <h1>Your Cart Is Empty</h1>
-
         <p>
-          Looks like you haven't added anything yet.
+          Looks like you haven't added anything to your cart yet.
         </p>
-
-        <Link to="/">
+        <Link to="/shop">
           CONTINUE SHOPPING
         </Link>
-
       </section>
     );
   }
 
   return (
     <section className="cart-page">
-
       <div className="cart-header">
         <p>YOUR SHOPPING BAG</p>
         <h1>Your Cart</h1>
       </div>
 
       <div className="cart-layout">
-
         <div className="cart-items">
-
           {cart.map((item) => (
             <div
               className="cart-item"
               key={`${item.id}-${item.size}`}
             >
-
               <img
                 src={item.image}
                 alt={item.name}
+                loading="lazy"
               />
 
               <div className="cart-item-info">
-
                 <h3>{item.name}</h3>
 
                 <p>
@@ -74,16 +63,16 @@ function Cart() {
                 </p>
 
                 <div className="cart-item-actions">
-
                   <div className="cart-quantity">
-
                     <button
+                      type="button"
                       onClick={() =>
                         decreaseQuantity(
                           item.id,
                           item.size
                         )
                       }
+                      aria-label="Decrease quantity"
                     >
                       −
                     </button>
@@ -93,19 +82,21 @@ function Cart() {
                     </span>
 
                     <button
+                      type="button"
                       onClick={() =>
                         increaseQuantity(
                           item.id,
                           item.size
                         )
                       }
+                      aria-label="Increase quantity"
                     >
                       +
                     </button>
-
                   </div>
 
                   <button
+                    type="button"
                     className="remove-button"
                     onClick={() =>
                       removeFromCart(
@@ -116,22 +107,17 @@ function Cart() {
                   >
                     REMOVE
                   </button>
-
                 </div>
-
               </div>
 
               <div className="cart-item-total">
                 ₹{item.price * item.quantity}
               </div>
-
             </div>
           ))}
-
         </div>
 
         <div className="cart-summary">
-
           <h2>Order Summary</h2>
 
           <div className="summary-row">
@@ -152,16 +138,14 @@ function Cart() {
           </div>
 
           <button
+            type="button"
             className="checkout-button"
             onClick={() => navigate("/checkout")}
           >
             PROCEED TO CHECKOUT
           </button>
-
         </div>
-
       </div>
-
     </section>
   );
 }

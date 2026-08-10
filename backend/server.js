@@ -5,7 +5,6 @@ require("dotenv").config();
 const supabase = require("./supabase");
 
 const app = express();
-
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
@@ -13,6 +12,7 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.json({
+    success: true,
     message: "WellFit backend is running",
   });
 });
@@ -42,22 +42,19 @@ app.get("/api/orders", async (req, res) => {
       });
     }
 
-    console.log("Fetching orders for user:", user.id);
-
     const { data, error } = await supabase
       .from("orders")
       .select(`
         *,
         order_items (*)
       `)
-      .eq("user_id", user.id)
+      .or(`user_id.eq.${user.id},email.eq.${user.email}`)
       .order("created_at", {
         ascending: false,
       });
 
     if (error) {
       console.error("ORDERS FETCH ERROR:", error);
-
       return res.status(500).json({
         success: false,
         message: error.message,
@@ -66,86 +63,10 @@ app.get("/api/orders", async (req, res) => {
 
     res.json({
       success: true,
-      orders: data,
+      orders: data || [],
     });
-
   } catch (error) {
     console.error("ORDERS ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-});
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
-    console.log(
-      `WellFit backend running on http://localhost:${PORT}`
-    );
-  });
-}
-
-module.exports = app;
-
-app.get("/api/orders", async (req, res) => {
-  try {
-    // Get access token from Authorization header
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    const accessToken = authHeader.split(" ")[1];
-
-    // Verify the Supabase user
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(accessToken);
-
-    if (userError || !user) {
-      console.error("AUTH ERROR:", userError);
-
-      return res.status(401).json({
-        success: false,
-        message: "Invalid or expired session",
-      });
-    }
-
-    // Get orders belonging to this user
-    const { data, error } = await supabase
-      .from("orders")
-      .select(`
-        *,
-        order_items (*)
-      `)
-      .eq("email", user.email)
-      .order("created_at", {
-        ascending: false,
-      });
-
-    if (error) {
-      console.error("ORDERS FETCH ERROR:", error);
-
-      return res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    res.json({
-      success: true,
-      orders: data,
-    });
-
-  } catch (error) {
-    console.error("ORDERS ERROR:", error);
-
     res.status(500).json({
       success: false,
       message: error.message,
@@ -155,32 +76,27 @@ app.get("/api/orders", async (req, res) => {
 
 app.post("/api/orders", async (req, res) => {
   try {
+    const { customer, items, total, accessToken } = req.body;
+
+    if (!accessToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
     const {
-  customer,
-  items,
-  total,
-  accessToken,
-} = req.body;
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
 
-if (!accessToken) {
-  return res.status(401).json({
-    success: false,
-    message: "Authentication required",
-  });
-}
+    if (userError || !user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired session",
+      });
+    }
 
-const {
-  data: { user },
-  error: userError,
-} = await supabase.auth.getUser(accessToken);
-
-if (userError || !user) {
-  return res.status(401).json({
-    success: false,
-    message: "Invalid or expired session",
-  });
-}
-    // Basic validation
     if (!customer || !items || items.length === 0) {
       return res.status(400).json({
         success: false,
@@ -188,25 +104,23 @@ if (userError || !user) {
       });
     }
 
-    // Create the order
-    const { data: order, error: orderError } =
-      await supabase
-        .from("orders")
-        .insert([
-          {
-  user_id: user.id,
-  customer_name: customer.name,
-  email: customer.email,
-  phone: customer.phone,
-  address: customer.address,
-  city: customer.city,
-  state: customer.state,
-  pincode: customer.pincode,
-  total: total,
-},
-        ])
-        .select()
-        .single();
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .insert([
+        {
+          user_id: user.id,
+          customer_name: customer.name,
+          email: customer.email,
+          phone: customer.phone,
+          address: customer.address,
+          city: customer.city,
+          state: customer.state,
+          pincode: customer.pincode,
+          total: total,
+        },
+      ])
+      .select()
+      .single();
 
     if (orderError) {
       return res.status(500).json({
@@ -215,7 +129,6 @@ if (userError || !user) {
       });
     }
 
-    // Create order items
     const orderItems = items.map((item) => ({
       order_id: order.id,
       product_id: item.id,
@@ -225,10 +138,9 @@ if (userError || !user) {
       price: item.price,
     }));
 
-    const { error: itemsError } =
-      await supabase
-        .from("order_items")
-        .insert(orderItems);
+    const { error: itemsError } = await supabase
+      .from("order_items")
+      .insert(orderItems);
 
     if (itemsError) {
       return res.status(500).json({
@@ -242,49 +154,17 @@ if (userError || !user) {
       message: "Order created successfully",
       order,
     });
-
   } catch (error) {
-
-    console.error("Order error:", error);
-
+    console.error("Order creation error:", error);
     res.status(500).json({
       success: false,
-      message: "Something went wrong",
+      message: error.message || "Failed to create order",
     });
   }
 });
-app.get("/api/orders", async (req, res) => {
-  try {
-    const { data, error } = await supabase
-      .from("orders")
-      .select(`
-        *,
-        order_items (*)
-      `)
-      .order("created_at", {
-        ascending: false,
-      });
 
-    if (error) {
-      console.error("ORDERS FETCH ERROR:", error);
-
-      return res.status(500).json({
-        success: false,
-        message: error.message,
-      });
-    }
-
-    res.json({
-      success: true,
-      orders: data,
-    });
-
-  } catch (error) {
-    console.error("ORDERS ERROR:", error);
-
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
+app.listen(PORT, () => {
+  console.log(`WellFit backend running on http://localhost:${PORT}`);
 });
+
+module.exports = app;

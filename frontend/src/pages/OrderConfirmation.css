@@ -5,6 +5,7 @@
   justify-content: center;
   padding: 60px 20px;
   background: #f7f7f5;
+  box-sizing: border-box;
 }
 
 .confirmation-card {
@@ -15,6 +16,7 @@
   text-align: center;
   border: 1px solid #e5e5e5;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
 }
 
 .success-icon {
@@ -36,7 +38,7 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 3px;
-  color: #777777;
+  color: #555555;
 }
 
 .confirmation-card h1 {
@@ -50,7 +52,7 @@
 .confirmation-message {
   margin-top: 18px;
   font-size: 16px;
-  color: #666666;
+  color: #555555;
 }
 
 .order-details {
@@ -73,7 +75,7 @@
 .detail-item span {
   font-size: 11px;
   letter-spacing: 2px;
-  color: #888888;
+  color: #555555;
 }
 
 .detail-item strong {
@@ -91,11 +93,14 @@
 .confirmation-note {
   margin-bottom: 30px;
   font-size: 14px;
-  color: #777777;
+  color: #555555;
 }
 
 .confirmation-button {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
   padding: 15px 30px;
   background: #111111;
   color: #ffffff;

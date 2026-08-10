@@ -1,17 +1,29 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
 import "./Login.css";
 
 function Login() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
+    setError("");
     setFormData((previous) => ({
       ...previous,
       [name]: value,
@@ -20,35 +32,43 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoading(true);
+    setError("");
+
+    const cleanEmail = formData.email.trim();
 
     try {
-      const { data, error } =
+      const { data, error: authError } =
         await supabase.auth.signInWithPassword({
-          email: formData.email,
+          email: cleanEmail,
           password: formData.password,
         });
 
-      if (error) {
-        throw error;
+      if (authError) {
+        throw authError;
       }
 
-      console.log("Login successful:", data);
-
-      alert("Login successful!");
-    } catch (error) {
-      console.error("Login failed:", error);
-
-      alert(`Login failed: ${error.message}`);
+      if (data?.session) {
+        navigate("/", { replace: true });
+      }
+    } catch (err) {
+      console.error("Login failed:", err);
+      let message = err.message || "Failed to log in. Please try again.";
+      if (message.toLowerCase().includes("email not confirmed")) {
+        message = "Your email address has not been confirmed yet. Please check your inbox for the confirmation link.";
+      } else if (message.toLowerCase().includes("invalid login credentials")) {
+        message = "Invalid email or password. If you recently registered, please confirm your email in Supabase or verify your credentials.";
+      }
+      setError(message);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <section className="auth-page">
       <div className="auth-card">
-
-        <p className="auth-label">
-          WELCOME BACK
-        </p>
+        <p className="auth-label">WELCOME BACK</p>
 
         <h1>Login</h1>
 
@@ -56,13 +76,11 @@ function Login() {
           Sign in to continue to your WellFit account.
         </p>
 
+        {error && <div className="auth-error">{error}</div>}
+
         <form onSubmit={handleSubmit}>
-
           <div className="form-group">
-            <label htmlFor="email">
-              Email
-            </label>
-
+            <label htmlFor="email">Email</label>
             <input
               id="email"
               name="email"
@@ -75,10 +93,7 @@ function Login() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">
-              Password
-            </label>
-
+            <label htmlFor="password">Password</label>
             <input
               id="password"
               name="password"
@@ -93,10 +108,10 @@ function Login() {
           <button
             type="submit"
             className="auth-button"
+            disabled={loading}
           >
-            LOGIN
+            {loading ? "LOGGING IN..." : "LOGIN"}
           </button>
-
         </form>
 
         <p className="auth-footer">
@@ -105,7 +120,6 @@ function Login() {
             Create one
           </Link>
         </p>
-
       </div>
     </section>
   );

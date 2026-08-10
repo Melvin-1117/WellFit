@@ -5,6 +5,7 @@
   justify-content: center;
   padding: 60px 20px;
   background: #f7f7f5;
+  box-sizing: border-box;
 }
 
 .auth-card {
@@ -14,20 +15,19 @@
   padding: 50px;
   border: 1px solid #e5e5e5;
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+  box-sizing: border-box;
 }
 
 .auth-label {
   margin: 0 0 12px;
-
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 3px;
-  color: #777777;
+  color: #555555;
 }
 
 .auth-card h1 {
   margin: 0;
-
   font-size: 40px;
   font-weight: 600;
   color: #111111;
@@ -35,10 +35,31 @@
 
 .auth-description {
   margin: 15px 0 35px;
-
   font-size: 15px;
   line-height: 1.6;
-  color: #666666;
+  color: #555555;
+}
+
+.auth-error {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  background: #fdf2f2;
+  border: 1px solid #f8b4b4;
+  border-radius: 6px;
+  color: #9b1c1c;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-success {
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  background: #f3faf7;
+  border: 1px solid #84e1bc;
+  border-radius: 6px;
+  color: #03543f;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .form-group {
@@ -48,7 +69,6 @@
 .form-group label {
   display: block;
   margin-bottom: 8px;
-
   font-size: 13px;
   font-weight: 600;
   color: #222222;
@@ -57,15 +77,11 @@
 .form-group input {
   width: 100%;
   box-sizing: border-box;
-
   padding: 14px 15px;
-
   border: 1px solid #d8d8d8;
   outline: none;
-
   font-size: 15px;
   color: #111111;
-
   transition: border-color 0.2s ease;
 }
 
@@ -74,26 +90,21 @@
 }
 
 .form-group input::placeholder {
-  color: #999999;
+  color: #888888;
 }
 
 .auth-button {
   width: 100%;
-
+  min-height: 48px;
   margin-top: 8px;
   padding: 15px;
-
   border: none;
-
   background: #111111;
   color: #ffffff;
-
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 1.5px;
-
   cursor: pointer;
-
   transition: background 0.25s ease;
 }
 
@@ -101,13 +112,16 @@
   background: #333333;
 }
 
+.auth-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 .auth-footer {
   margin: 25px 0 0;
-
   text-align: center;
-
   font-size: 14px;
-  color: #777777;
+  color: #555555;
 }
 
 .auth-footer a {

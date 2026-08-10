@@ -1,9 +1,11 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import products from "../data/products";
 import { useCart } from "../context/CartContext";
+
 function ProductDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const product = products.find(
     (item) => item.id === Number(id)
@@ -29,9 +31,28 @@ function ProductDetails() {
     }
   };
 
+  const handleAddToCart = () => {
+    if (!selectedSize) {
+      alert("Please select a size");
+      return;
+    }
+
+    addToCart(product, selectedSize, quantity);
+
+    const isMobile = window.innerWidth <= 700;
+    if (isMobile) {
+      if (window.history.length > 2) {
+        navigate(-1);
+      } else {
+        navigate("/shop");
+      }
+    } else {
+      alert("Product added to cart!");
+    }
+  };
+
   return (
     <section className="product-details">
-
       <div className="product-details-image">
         <img
           src={product.image}
@@ -39,9 +60,7 @@ function ProductDetails() {
         />
       </div>
 
-
       <div className="product-details-info">
-
         <p className="product-category">
           {product.category.toUpperCase()}
         </p>
@@ -54,12 +73,14 @@ function ProductDetails() {
           Discover premium quality and a look that
           fits effortlessly into your wardrobe.
         </p>
+
         <div className="size-section">
           <h3>Select Size</h3>
           <div className="size-options">
             {["S", "M", "L", "XL"].map((size) => (
               <button
                 key={size}
+                type="button"
                 className={
                   selectedSize === size ? "selected" : ""
                 }
@@ -70,34 +91,27 @@ function ProductDetails() {
             ))}
           </div>
         </div>
+
         <div className="quantity-section">
           <h3>Quantity</h3>
           <div className="quantity-control">
-            <button onClick={decreaseQuantity}>
+            <button type="button" onClick={decreaseQuantity}>
               −
             </button>
             <span>{quantity}</span>
-            <button onClick={increaseQuantity}>
+            <button type="button" onClick={increaseQuantity}>
               +
             </button>
           </div>
         </div>
+
         <button
-        className="add-to-cart-button"
-        onClick={() => {
-            if (!selectedSize) {
-            alert("Please select a size");
-            return;
-            }
-
-            addToCart(product, selectedSize, quantity);
-
-            alert("Product added to cart!");
-        }}
+          type="button"
+          className="add-to-cart-button"
+          onClick={handleAddToCart}
         >
-             ADD TO CART
+          ADD TO CART
         </button>
-        
       </div>
     </section>
   );

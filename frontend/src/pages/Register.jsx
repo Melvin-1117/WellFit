@@ -1,18 +1,33 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import "./Login.css";
 import { supabase } from "../lib/supabase";
+import { useAuth } from "../context/AuthContext";
+
 function Register() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      navigate("/", { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
-
+    setError("");
+    setSuccess("");
     setFormData((previous) => ({
       ...previous,
       [name]: value,
@@ -20,53 +35,54 @@ function Register() {
   };
 
   const handleSubmit = async (event) => {
-  event.preventDefault();
+    event.preventDefault();
+    setError("");
+    setSuccess("");
 
-  if (formData.password !== formData.confirmPassword) {
-    alert("Passwords do not match.");
-    return;
-  }
-
-  try {
-    const { data, error } = await supabase.auth.signUp({
-  email: formData.email,
-  password: formData.password,
-
-  options: {
-    emailRedirectTo:
-      "http://localhost:5173/email-confirmed",
-
-    data: {
-      name: formData.name,
-    },
-  },
-});
-    if (error) {
-      throw error;
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match.");
+      return;
     }
 
-    console.log("Registration successful:", data);
+    setLoading(true);
 
-    alert(
-      "Account created successfully! Please check your email if confirmation is required."
-    );
+    const cleanEmail = formData.email.trim();
 
-  } catch (error) {
-    console.error("Registration failed:", error);
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/email-confirmed`,
+          data: {
+            name: formData.name,
+          },
+        },
+      });
 
-    alert(
-      `Registration failed: ${error.message}`
-    );
-  }
-};
+      if (signUpError) {
+        throw signUpError;
+      }
+
+      if (data?.session) {
+        navigate("/", { replace: true });
+      } else {
+        setSuccess(
+          "Account created successfully! Please check your email inbox to confirm your account before logging in, or confirm the user in your Supabase dashboard."
+        );
+      }
+    } catch (err) {
+      console.error("Registration failed:", err);
+      setError(err.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <section className="auth-page">
       <div className="auth-card">
-
-        <p className="auth-label">
-           WELLFIT
-        </p>
+        <p className="auth-label">WELLFIT</p>
 
         <h1>Create Account</h1>
 
@@ -74,13 +90,12 @@ function Register() {
           Create your account and start shopping with WellFit.
         </p>
 
+        {error && <div className="auth-error">{error}</div>}
+        {success && <div className="auth-success">{success}</div>}
+
         <form onSubmit={handleSubmit}>
-
           <div className="form-group">
-            <label htmlFor="name">
-              Full Name
-            </label>
-
+            <label htmlFor="name">Full Name</label>
             <input
               id="name"
               name="name"
@@ -93,10 +108,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email">
-              Email
-            </label>
-
+            <label htmlFor="email">Email</label>
             <input
               id="email"
               name="email"
@@ -109,10 +121,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">
-              Password
-            </label>
-
+            <label htmlFor="password">Password</label>
             <input
               id="password"
               name="password"
@@ -126,10 +135,7 @@ function Register() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword">
-              Confirm Password
-            </label>
-
+            <label htmlFor="confirmPassword">Confirm Password</label>
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -145,10 +151,10 @@ function Register() {
           <button
             type="submit"
             className="auth-button"
+            disabled={loading}
           >
-            CREATE ACCOUNT
+            {loading ? "CREATING ACCOUNT..." : "CREATE ACCOUNT"}
           </button>
-
         </form>
 
         <p className="auth-footer">
@@ -157,7 +163,6 @@ function Register() {
             Login
           </Link>
         </p>
-
       </div>
     </section>
   );

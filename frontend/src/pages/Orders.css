@@ -1,16 +1,9 @@
-/* =========================
-   ORDERS PAGE
-========================= */
-
 .orders-page {
-  min-height: 100vh;
-  padding: 120px 8% 80px;
+  min-height: calc(100vh - 72px);
+  padding: 80px 8% 80px;
   background: #f8f7f4;
+  box-sizing: border-box;
 }
-
-/* =========================
-   HEADER
-========================= */
 
 .orders-header {
   max-width: 800px;
@@ -23,7 +16,7 @@
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 3px;
-  color: #8a7352;
+  color: #555555;
 }
 
 .orders-header h1 {
@@ -38,12 +31,8 @@
   margin: 0;
   font-size: 16px;
   line-height: 1.7;
-  color: #777;
+  color: #555555;
 }
-
-/* =========================
-   ORDERS LIST
-========================= */
 
 .orders-list {
   max-width: 1000px;
@@ -53,10 +42,6 @@
   gap: 28px;
 }
 
-/* =========================
-   ORDER CARD
-========================= */
-
 .order-card {
   background: #ffffff;
   border: 1px solid #e7e3dc;
@@ -64,10 +49,6 @@
   overflow: hidden;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
 }
-
-/* =========================
-   ORDER HEADER
-========================= */
 
 .order-card-header {
   display: grid;
@@ -89,7 +70,7 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.5px;
-  color: #999;
+  color: #555555;
 }
 
 .order-card-header strong {
@@ -97,10 +78,6 @@
   font-weight: 600;
   color: #222;
 }
-
-/* =========================
-   ORDER ITEMS
-========================= */
 
 .order-items {
   padding: 10px 30px;
@@ -129,7 +106,7 @@
 .order-item p {
   margin: 4px 0;
   font-size: 13px;
-  color: #888;
+  color: #555555;
 }
 
 .order-item > strong {
@@ -138,10 +115,6 @@
   font-weight: 600;
   color: #222;
 }
-
-/* =========================
-   ORDER STATUS
-========================= */
 
 .order-status {
   display: flex;
@@ -160,10 +133,6 @@
   font-size: 12px;
   font-weight: 600;
 }
-
-/* =========================
-   EMPTY ORDERS
-========================= */
 
 .empty-orders {
   max-width: 600px;
@@ -184,24 +153,16 @@
 
 .empty-orders p {
   margin: 0;
-  color: #888;
+  color: #555555;
   font-size: 15px;
 }
-
-/* =========================
-   LOADING
-========================= */
 
 .orders-loading {
   padding: 100px 20px;
   text-align: center;
   font-size: 16px;
-  color: #777;
+  color: #555555;
 }
-
-/* =========================
-   ERROR
-========================= */
 
 .orders-error {
   max-width: 600px;
@@ -226,13 +187,9 @@
   font-size: 14px;
 }
 
-/* =========================
-   RESPONSIVE
-========================= */
-
 @media (max-width: 768px) {
   .orders-page {
-    padding: 100px 5% 60px;
+    padding: 60px 5% 60px;
   }
 
   .orders-header h1 {
@@ -256,7 +213,7 @@
 
 @media (max-width: 480px) {
   .orders-page {
-    padding: 90px 4% 50px;
+    padding: 50px 4% 50px;
   }
 
   .orders-header h1 {

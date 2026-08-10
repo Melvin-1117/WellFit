@@ -73,7 +73,6 @@ function CartProvider({ children }) {
     );
   };
 
-  // Clear the entire cart
   const clearCart = () => {
     setCart([]);
   };

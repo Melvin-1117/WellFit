@@ -18,15 +18,12 @@ function Navbar() {
 
   return (
     <nav className="navbar">
-
-      {/* Logo */}
       <div className="navbar-logo">
         <Link to="/" onClick={closeMenu}>
           WellFit
         </Link>
       </div>
 
-      {/* Desktop Navigation */}
       <div className="navbar-links">
         <Link to="/">Home</Link>
         <Link to="/men">Men</Link>
@@ -34,9 +31,7 @@ function Navbar() {
         <Link to="/kids">Kids</Link>
       </div>
 
-      {/* Desktop Actions */}
       <div className="navbar-actions">
-
         {user ? (
           <>
             <Link
@@ -64,26 +59,23 @@ function Navbar() {
         )}
 
         <CartButton />
-
       </div>
 
-      {/* Mobile Menu Button */}
       <button
         type="button"
         className="mobile-menu-button"
         onClick={() => setMenuOpen(!menuOpen)}
         aria-label="Toggle navigation menu"
+        aria-expanded={menuOpen}
       >
         {menuOpen ? "✕" : "☰"}
       </button>
 
-      {/* Mobile Menu */}
       <div
         className={`mobile-menu ${
           menuOpen ? "mobile-menu-open" : ""
         }`}
       >
-
         <Link
           to="/"
           onClick={closeMenu}
@@ -140,9 +132,7 @@ function Navbar() {
         <div className="mobile-cart">
           <CartButton />
         </div>
-
       </div>
-
     </nav>
   );
 }
