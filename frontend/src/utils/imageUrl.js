@@ -3,7 +3,7 @@
  * Uploaded images (starting with /uploads/) need the backend API_URL prefix.
  * External URLs (https://) and local public paths (/products/) pass through unchanged.
  */
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
 
 export function resolveImageUrl(imagePath) {
   if (!imagePath) return "https://via.placeholder.com/300x400?text=WellFit";

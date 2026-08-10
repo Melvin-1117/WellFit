@@ -7,7 +7,7 @@ function AdminProductForm() {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
