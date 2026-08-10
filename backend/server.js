@@ -78,36 +78,77 @@ app.get("/api/orders", async (req, res) => {
     });
   }
 });
-app.listen(PORT, () => {
-  console.log(
-    `WellFit backend running on http://localhost:${PORT}`
-  );
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(
+      `WellFit backend running on http://localhost:${PORT}`
+    );
+  });
+}
 
-app.get("/api/products", async (req, res) => {
+module.exports = app;
+
+app.get("/api/orders", async (req, res) => {
   try {
+    // Get access token from Authorization header
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    // Verify the Supabase user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      console.error("AUTH ERROR:", userError);
+
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired session",
+      });
+    }
+
+    // Get orders belonging to this user
     const { data, error } = await supabase
-      .from("products")
-      .select("*")
+      .from("orders")
+      .select(`
+        *,
+        order_items (*)
+      `)
+      .eq("email", user.email)
       .order("created_at", {
         ascending: false,
       });
 
     if (error) {
+      console.error("ORDERS FETCH ERROR:", error);
+
       return res.status(500).json({
         success: false,
-        error: error.message,
+        message: error.message,
       });
     }
 
     res.json({
       success: true,
-      products: data,
+      orders: data,
     });
+
   } catch (error) {
+    console.error("ORDERS ERROR:", error);
+
     res.status(500).json({
       success: false,
-      error: error.message,
+      message: error.message,
     });
   }
 });

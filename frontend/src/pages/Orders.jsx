@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import "./Orders.css";
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +23,7 @@ function Orders() {
 
         // Send the access token to the backend
         const response = await fetch(
-          "http://localhost:5000/api/orders",
+          `${API_URL}/api/orders`,
           {
             headers: {
               Authorization: `Bearer ${session.access_token}`,
