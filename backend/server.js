@@ -765,20 +765,21 @@ app.post("/api/orders", async (req, res) => {
       .insert([
         {
           user_id: user.id,
-          customer_name: customer.name,
-          email: customer.email,
-          phone: customer.phone,
-          address: customer.address,
-          city: customer.city,
-          state: customer.state,
-          pincode: customer.pincode,
-          total: total,
+          customer_name: customer.name || customer.customer_name || user.email || "Customer",
+          email: customer.email || user.email || "",
+          phone: customer.phone || "",
+          address: customer.address || "",
+          city: customer.city || "",
+          state: customer.state || "",
+          pincode: customer.pincode || "",
+          total: Number(total) || 0,
         },
       ])
       .select()
       .single();
 
     if (orderError) {
+      console.error("ORDER INSERT ERROR:", orderError);
       return res.status(500).json({
         success: false,
         message: orderError.message,
@@ -790,10 +791,10 @@ app.post("/api/orders", async (req, res) => {
     const orderItems = items.map((item) => ({
       order_id: order.id,
       product_id: item.id,
-      product_name: item.name,
-      size: item.size,
-      quantity: item.quantity,
-      price: item.price,
+      product_name: item.name || item.product_name || "Product",
+      size: item.size || "M",
+      quantity: Number(item.quantity) || 1,
+      price: Number(item.price) || 0,
     }));
 
     const { error: itemsError } = await supabase
