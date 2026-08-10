@@ -14,6 +14,14 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
+// URL Normalizer for Vercel Serverless Function rewrites
+app.use((req, res, next) => {
+  if (!req.url.startsWith("/api") && !req.url.startsWith("/uploads")) {
+    req.url = "/api" + (req.url.startsWith("/") ? "" : "/") + req.url;
+  }
+  next();
+});
+
 // Serve uploaded images statically
 const uploadsDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadsDir)) {

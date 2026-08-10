@@ -38,24 +38,34 @@ function AdminDashboard() {
 
       // 1. Fetch Products
       const resProducts = await fetch(`${API_URL}/api/products`);
-      const dataProducts = await resProducts.json();
-      if (dataProducts.success) {
-        setProducts(dataProducts.products || []);
+      if (resProducts.ok) {
+        const dataProducts = await resProducts.json();
+        if (dataProducts.success) {
+          setProducts(dataProducts.products || []);
+        }
       }
 
       if (session?.access_token) {
         // 2. Fetch Orders (Admin)
         const resOrders = await fetch(`${API_URL}/api/admin/orders`, { headers });
-        const dataOrders = await resOrders.json();
-        if (dataOrders.success) {
-          setOrders(dataOrders.orders || []);
+        if (resOrders.ok) {
+          const dataOrders = await resOrders.json();
+          if (dataOrders.success) {
+            setOrders(dataOrders.orders || []);
+          }
+        } else {
+          console.warn("Admin orders endpoint returned status:", resOrders.status);
         }
 
         // 3. Fetch Stats (Admin)
         const resStats = await fetch(`${API_URL}/api/admin/stats`, { headers });
-        const dataStats = await resStats.json();
-        if (dataStats.success && dataStats.stats) {
-          setStats(dataStats.stats);
+        if (resStats.ok) {
+          const dataStats = await resStats.json();
+          if (dataStats.success && dataStats.stats) {
+            setStats(dataStats.stats);
+          }
+        } else {
+          console.warn("Admin stats endpoint returned status:", resStats.status);
         }
       }
     } catch (err) {

@@ -1,7 +1,10 @@
 const fs = require("fs");
 const path = require("path");
 
-const STATUS_FILE = path.join(__dirname, "orderStatuses.json");
+const isVercel = Boolean(process.env.VERCEL);
+const STATUS_FILE = isVercel
+  ? path.join("/tmp", "orderStatuses.json")
+  : path.join(__dirname, "orderStatuses.json");
 
 function loadStatuses() {
   try {
