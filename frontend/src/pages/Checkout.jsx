@@ -3,11 +3,12 @@ import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import "./Checkout.css";
+
 function Checkout() {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
   const [formData, setFormData] = useState({
     name: "",
@@ -18,6 +19,8 @@ function Checkout() {
     state: "",
     pincode: "",
   });
+
+  const [loading, setLoading] = useState(false);
 
   const subtotal = cart.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -36,6 +39,8 @@ function Checkout() {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (loading) return;
+
     if (cart.length === 0) {
       alert("Your cart is empty.");
       navigate("/");
@@ -43,6 +48,8 @@ function Checkout() {
     }
 
     try {
+      setLoading(true);
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -53,28 +60,23 @@ function Checkout() {
         return;
       }
 
-      const response = await fetch(
-        `${API_URL}/api/orders`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            customer: formData,
-            items: cart,
-            total: subtotal,
-            accessToken: session.access_token,
-          }),
-        }
-      );
+      const response = await fetch(`${API_URL}/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer: formData,
+          items: cart,
+          total: subtotal,
+          accessToken: session.access_token,
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(
-          data.message || "Failed to place order"
-        );
+        throw new Error(data.message || "Failed to place order");
       }
 
       console.log("Order created:", data);
@@ -88,8 +90,9 @@ function Checkout() {
       });
     } catch (error) {
       console.error("Order failed:", error);
-
       alert(`Order failed: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -98,14 +101,8 @@ function Checkout() {
       <section className="checkout-page">
         <div className="empty-cart">
           <h2>Your cart is empty</h2>
-
-          <p>
-            Add some products before proceeding to checkout.
-          </p>
-
-          <Link to="/shop">
-            CONTINUE SHOPPING
-          </Link>
+          <p>Add some products before proceeding to checkout.</p>
+          <Link to="/shop">CONTINUE SHOPPING</Link>
         </div>
       </section>
     );
@@ -113,22 +110,17 @@ function Checkout() {
 
   return (
     <section className="checkout-page">
-
       <div className="checkout-header">
         <p>COMPLETE YOUR ORDER</p>
         <h1>Checkout</h1>
       </div>
 
       <div className="checkout-container">
-
         {/* CUSTOMER FORM */}
-
         <div className="checkout-form">
-
           <h2>Contact Information</h2>
 
           <form onSubmit={handleSubmit}>
-
             <label>
               Full Name
               <input
@@ -208,50 +200,34 @@ function Checkout() {
               />
             </label>
 
-            <button type="submit">
-              PLACE ORDER
+            <button type="submit" disabled={loading}>
+              {loading ? "PLACING ORDER..." : "PLACE ORDER"}
             </button>
-
           </form>
         </div>
 
         {/* ORDER SUMMARY */}
-
         <div className="order-summary">
-
           <h2>Your Order</h2>
 
           {cart.map((item) => (
-            <div
-              className="checkout-item"
-              key={`${item.id}-${item.size}`}
-            >
+            <div className="checkout-item" key={`${item.id}-${item.size}`}>
               <div>
                 <h3>{item.name}</h3>
-
                 <p>Size: {item.size}</p>
-
                 <p>Qty: {item.quantity}</p>
               </div>
 
-              <strong>
-                ₹{item.price * item.quantity}
-              </strong>
+              <strong>₹{item.price * item.quantity}</strong>
             </div>
           ))}
 
           <div className="checkout-total">
             <span>Total</span>
-
-            <strong>
-              ₹{subtotal}
-            </strong>
+            <strong>₹{subtotal}</strong>
           </div>
-
         </div>
-
       </div>
-
     </section>
   );
 }

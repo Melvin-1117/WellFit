@@ -593,6 +593,22 @@
   border-color: #021024;
 }
 
+.size-options button.unavailable,
+.size-options button:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  text-decoration: line-through;
+  opacity: 0.65;
+}
+
+.size-options button.unavailable:hover {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+}
+
 .quantity-section {
   margin-bottom: 30px;
 }

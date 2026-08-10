@@ -1,22 +1,65 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
-import products from "../data/products";
+import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 
 function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const product = products.find(
-    (item) => item.id === Number(id)
-  );
+
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
 
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/products/${id}`);
+        const data = await res.json();
+
+        if (data.success && data.product) {
+          setProduct(data.product);
+        } else {
+          setProduct(null);
+        }
+      } catch (err) {
+        console.error("Error fetching product details:", err);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id, API_URL]);
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "80px 20px", fontSize: "16px", color: "#5483B3" }}>
+        Loading product details...
+      </div>
+    );
+  }
+
   if (!product) {
     return (
-      <div className="product-not-found">
+      <div className="product-not-found" style={{ textAlign: "center", padding: "80px 20px" }}>
         <h2>Product not found</h2>
+        <p style={{ color: "#666", margin: "12px 0 24px" }}>
+          The product you are looking for does not exist or has been removed.
+        </p>
+        <button
+          type="button"
+          className="add-to-cart-button"
+          style={{ maxWidth: "200px", margin: "0 auto" }}
+          onClick={() => navigate("/shop")}
+        >
+          RETURN TO SHOP
+        </button>
       </div>
     );
   }
@@ -51,44 +94,67 @@ function ProductDetails() {
     }
   };
 
+  const STANDARD_SIZES = ["S", "M", "L", "XL"];
+  const availableSizes =
+    product.sizes && Array.isArray(product.sizes) && product.sizes.length > 0
+      ? product.sizes
+      : STANDARD_SIZES;
+
+  const allDisplaySizes = Array.from(
+    new Set([...STANDARD_SIZES, ...availableSizes])
+  );
+
   return (
     <section className="product-details">
       <div className="product-details-image">
         <img
-          src={product.image}
+          src={product.image || product.image_url}
           alt={product.name}
+          onError={(e) => {
+            e.target.src = "https://via.placeholder.com/400x500?text=No+Image";
+          }}
         />
       </div>
 
       <div className="product-details-info">
         <p className="product-category">
-          {product.category.toUpperCase()}
+          {product.category ? product.category.toUpperCase() : "APPAREL"}
         </p>
         <h1>{product.name}</h1>
         <p className="product-price">
           ₹{product.price}
         </p>
         <p className="product-description">
-          Designed for comfort and everyday style.
-          Discover premium quality and a look that
-          fits effortlessly into your wardrobe.
+          {product.description ||
+            "Designed for comfort and everyday style. Discover premium quality and a look that fits effortlessly into your wardrobe."}
         </p>
 
         <div className="size-section">
           <h3>Select Size</h3>
           <div className="size-options">
-            {["S", "M", "L", "XL"].map((size) => (
-              <button
-                key={size}
-                type="button"
-                className={
-                  selectedSize === size ? "selected" : ""
-                }
-                onClick={() => setSelectedSize(size)}
-              >
-                {size}
-              </button>
-            ))}
+            {allDisplaySizes.map((size) => {
+              const isAvailable = availableSizes.includes(size);
+              const isSelected = selectedSize === size;
+
+              return (
+                <button
+                  key={size}
+                  type="button"
+                  disabled={!isAvailable}
+                  className={`${isSelected ? "selected" : ""} ${
+                    !isAvailable ? "unavailable" : ""
+                  }`}
+                  onClick={() => isAvailable && setSelectedSize(size)}
+                  title={
+                    isAvailable
+                      ? `Select size ${size}`
+                      : `Size ${size} is out of stock`
+                  }
+                >
+                  {size}
+                </button>
+              );
+            })}
           </div>
         </div>
 

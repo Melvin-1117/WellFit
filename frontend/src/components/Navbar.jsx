@@ -4,7 +4,7 @@ import CartButton from "./CartButton";
 import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -34,6 +34,16 @@ function Navbar() {
       <div className="navbar-actions">
         {user ? (
           <>
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="login-button admin-badge-button"
+                style={{ backgroundColor: "#052659", color: "#ffffff", borderColor: "#052659" }}
+              >
+                Admin Panel
+              </Link>
+            )}
+
             <Link
               to="/orders"
               className="login-button"
@@ -106,6 +116,16 @@ function Navbar() {
 
         {user ? (
           <>
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={closeMenu}
+                style={{ color: "#052659", fontWeight: 700 }}
+              >
+                Admin Panel
+              </Link>
+            )}
+
             <Link
               to="/orders"
               onClick={closeMenu}

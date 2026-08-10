@@ -11,7 +11,46 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+
+  const checkAdminRole = async (currentUser, session) => {
+    if (!currentUser) {
+      setIsAdmin(false);
+      return;
+    }
+
+    const isMetaAdmin =
+      currentUser.user_metadata?.is_admin === true ||
+      currentUser.app_metadata?.is_admin === true ||
+      currentUser.email === "admin@wellfit.com";
+
+    if (isMetaAdmin) {
+      setIsAdmin(true);
+      return;
+    }
+
+    try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const token = session?.access_token;
+      if (token) {
+        const res = await fetch(`${API_URL}/api/auth/profile`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.json();
+        if (data.success && data.isAdmin) {
+          setIsAdmin(true);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not verify admin status with backend:", e);
+    }
+
+    setIsAdmin(false);
+  };
 
   useEffect(() => {
     const getSession = async () => {
@@ -19,7 +58,9 @@ export function AuthProvider({ children }) {
         data: { session },
       } = await supabase.auth.getSession();
 
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      await checkAdminRole(currentUser, session);
       setLoading(false);
     };
 
@@ -28,8 +69,11 @@ export function AuthProvider({ children }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
+      async (_event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        await checkAdminRole(currentUser, session);
+        setLoading(false);
       }
     );
 
@@ -47,12 +91,14 @@ export function AuthProvider({ children }) {
     }
 
     setUser(null);
+    setIsAdmin(false);
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
+        isAdmin,
         loading,
         logout,
       }}

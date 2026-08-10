@@ -24,8 +24,12 @@ import Contact from "./pages/Contact";
 import Shipping from "./pages/Shipping";
 import Privacy from "./pages/Privacy";
 
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminProductForm from "./pages/admin/AdminProductForm";
+
 import { CartProvider } from "./context/CartContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function Home() {
   return (
@@ -121,6 +125,36 @@ function App() {
                   <Orders />
                 </Layout>
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Layout>
+                  <AdminDashboard />
+                </Layout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/products/new"
+            element={
+              <AdminRoute>
+                <Layout>
+                  <AdminProductForm />
+                </Layout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/products/:id/edit"
+            element={
+              <AdminRoute>
+                <Layout>
+                  <AdminProductForm />
+                </Layout>
+              </AdminRoute>
             }
           />
           <Route
