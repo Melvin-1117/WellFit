@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../utils/imageUrl";
+import { supabase } from "../lib/supabase";
 
 function ProductDetails() {
   const { id } = useParams();
@@ -19,11 +20,46 @@ function ProductDetails() {
     const fetchProduct = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/products/${id}`);
-        const data = await res.json();
 
-        if (data.success && data.product) {
-          setProduct(data.product);
+        // 1. Primary fetch via backend API endpoint
+        const res = await fetch(`${API_URL}/api/products/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.product) {
+            setProduct(data.product);
+            return;
+          }
+        }
+
+        // 2. Direct fallback fetch from Supabase client for Vercel live site resilience
+        const numId = parseInt(id, 10);
+        const { data: dbData } = await supabase
+          .from("products")
+          .select("*")
+          .eq("id", isNaN(numId) ? id : numId)
+          .maybeSingle();
+
+        if (dbData) {
+          // Parse description metadata for sizes
+          let sizes = ["S", "M", "L", "XL"];
+          let cleanDesc = dbData.description || "";
+          const metaMatch = cleanDesc.match(/\[META:sizes=(.*?);stock=(.*?)\]/);
+          if (metaMatch) {
+            if (metaMatch[1]) sizes = metaMatch[1].split(",").map((s) => s.trim()).filter(Boolean);
+            cleanDesc = cleanDesc.replace(/\[META:.*?\]/g, "").trim();
+          }
+
+          setProduct({
+            id: dbData.id,
+            name: dbData.name,
+            price: Number(dbData.price),
+            category: dbData.category,
+            image: dbData.image || dbData.image_url || "/products/men/item1.jpg",
+            image_url: dbData.image_url || dbData.image || "/products/men/item1.jpg",
+            description: cleanDesc || "Designed for comfort and everyday style.",
+            sizes: dbData.sizes && Array.isArray(dbData.sizes) ? dbData.sizes : sizes,
+            stock: dbData.stock !== undefined ? dbData.stock : 50,
+          });
         } else {
           setProduct(null);
         }
@@ -119,19 +155,19 @@ function ProductDetails() {
 
       <div className="product-details-info">
         <p className="product-category">
-          {product.category ? product.category.toUpperCase() : "APPAREL"}
-        </p>
-        <h1>{product.name}</h1>
-        <p className="product-price">
-          ₹{product.price}
-        </p>
-        <p className="product-description">
-          {product.description ||
-            "Designed for comfort and everyday style. Discover premium quality and a look that fits effortlessly into your wardrobe."}
+          {product.category?.toUpperCase() || "COLLECTION"}
         </p>
 
+        <h1>{product.name}</h1>
+
+        <p className="product-price">₹{product.price}</p>
+
+        <p className="product-description">{product.description}</p>
+
+        {/* Size Selection */}
         <div className="size-section">
           <h3>Select Size</h3>
+
           <div className="size-options">
             {allDisplaySizes.map((size) => {
               const isAvailable = availableSizes.includes(size);
@@ -142,15 +178,17 @@ function ProductDetails() {
                   key={size}
                   type="button"
                   disabled={!isAvailable}
-                  className={`${isSelected ? "selected" : ""} ${
+                  className={`size-button ${isSelected ? "selected" : ""} ${
                     !isAvailable ? "unavailable" : ""
                   }`}
-                  onClick={() => isAvailable && setSelectedSize(size)}
-                  title={
-                    isAvailable
-                      ? `Select size ${size}`
-                      : `Size ${size} is out of stock`
-                  }
+                  onClick={() => {
+                    if (isAvailable) {
+                      setSelectedSize(size);
+                    }
+                  }}
+                  style={{
+                    textDecoration: !isAvailable ? "line-through" : "none",
+                  }}
                 >
                   {size}
                 </button>
@@ -159,19 +197,32 @@ function ProductDetails() {
           </div>
         </div>
 
+        {/* Quantity Selection */}
         <div className="quantity-section">
           <h3>Quantity</h3>
-          <div className="quantity-control">
-            <button type="button" onClick={decreaseQuantity}>
-              −
+
+          <div className="quantity-controls">
+            <button
+              type="button"
+              className="quantity-btn"
+              onClick={decreaseQuantity}
+            >
+              -
             </button>
-            <span>{quantity}</span>
-            <button type="button" onClick={increaseQuantity}>
+
+            <span className="quantity-number">{quantity}</span>
+
+            <button
+              type="button"
+              className="quantity-btn"
+              onClick={increaseQuantity}
+            >
               +
             </button>
           </div>
         </div>
 
+        {/* Add to Cart Button */}
         <button
           type="button"
           className="add-to-cart-button"
