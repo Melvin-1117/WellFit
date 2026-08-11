@@ -198,19 +198,11 @@ function AdminDashboard() {
         return;
       }
 
-      let response = await fetch(`${API_URL}/api/invoice?id=${orderId}`, {
+      const response = await fetch(`${API_URL}/api/orders?invoice=true&id=${orderId}`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
-
-      if (!response.ok && response.status === 404) {
-        response = await fetch(`${API_URL}/api/orders?invoice=true&id=${orderId}`, {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-      }
 
       if (!response.ok) {
         const text = await response.text().catch(() => "");
