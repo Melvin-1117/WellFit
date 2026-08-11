@@ -222,8 +222,122 @@ app.get("/api/auth/profile", async (req, res) => {
       success: false,
       message: error.message,
     });
+// INVOICE PDF DOWNLOAD
+async function handleInvoiceDownload(req, res) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired session",
+      });
+    }
+
+    const id = req.params.id || req.query.id || req.query.orderId;
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
+    const numId = parseInt(id, 10);
+
+    // Fetch order with items (supporting integer or UUID id)
+    let query = supabase.from("orders").select(`
+      *,
+      order_items (*)
+    `);
+
+    if (!isNaN(numId)) {
+      query = query.eq("id", numId);
+    } else {
+      query = query.eq("id", id);
+    }
+
+    const { data: order, error: orderError } = await query.maybeSingle();
+
+    if (orderError || !order) {
+      console.error("INVOICE FETCH ERROR:", orderError || "Order not found for ID " + id);
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Authorization: owner or admin
+    let isAllowed = order.user_id === user.id;
+
+    if (!isAllowed) {
+      const adminCheck = await verifyAdmin(req);
+      isAllowed = adminCheck.isAdmin;
+    }
+
+    if (!isAllowed) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can only download invoices for your own orders.",
+      });
+    }
+
+    // Resolve status
+    const status = order.status || getOrderStatus(order.id);
+
+    // Generate the invoice PDF
+    const invoiceNumber = getInvoiceNumber(order.id);
+    const pdfDoc = generateInvoice(order, order.order_items, status);
+
+    // Buffer the PDF fully before sending — required for Vercel serverless
+    const chunks = [];
+    pdfDoc.on("data", (chunk) => chunks.push(chunk));
+    pdfDoc.on("end", () => {
+      const pdfBuffer = Buffer.concat(chunks);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="invoice-${invoiceNumber}.pdf"`
+      );
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.end(pdfBuffer);
+    });
+    pdfDoc.on("error", (err) => {
+      console.error("PDF STREAM ERROR:", err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: "Failed to generate invoice PDF",
+        });
+      }
+    });
+  } catch (error) {
+    console.error("INVOICE GENERATION ERROR:", error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to generate invoice",
+      });
+    }
   }
-});
+}
+
+app.get("/api/orders/:id/invoice", handleInvoiceDownload);
+app.get("/orders/:id/invoice", handleInvoiceDownload);
+app.get("/api/invoice", handleInvoiceDownload);
+app.get("/invoice", handleInvoiceDownload);
 
 // GET PUBLIC PRODUCTS
 app.get("/api/products", async (req, res) => {
@@ -741,123 +855,6 @@ app.get("/api/orders", async (req, res) => {
     });
   }
 });
-
-// INVOICE PDF DOWNLOAD
-async function handleInvoiceDownload(req, res) {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    const accessToken = authHeader.split(" ")[1];
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(accessToken);
-
-    if (userError || !user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid or expired session",
-      });
-    }
-
-    const id = req.params.id || req.query.id || req.query.orderId;
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Order ID is required",
-      });
-    }
-    const numId = parseInt(id, 10);
-
-    // Fetch order with items (supporting integer or UUID id)
-    let query = supabase.from("orders").select(`
-      *,
-      order_items (*)
-    `);
-
-    if (!isNaN(numId)) {
-      query = query.eq("id", numId);
-    } else {
-      query = query.eq("id", id);
-    }
-
-    const { data: order, error: orderError } = await query.maybeSingle();
-
-    if (orderError || !order) {
-      console.error("INVOICE FETCH ERROR:", orderError || "Order not found for ID " + id);
-      return res.status(404).json({
-        success: false,
-        message: "Order not found",
-      });
-    }
-
-    // Authorization: owner or admin
-    let isAllowed = order.user_id === user.id;
-
-    if (!isAllowed) {
-      const adminCheck = await verifyAdmin(req);
-      isAllowed = adminCheck.isAdmin;
-    }
-
-    if (!isAllowed) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied. You can only download invoices for your own orders.",
-      });
-    }
-
-    // Resolve status
-    const status = order.status || getOrderStatus(order.id);
-
-    // Generate the invoice PDF
-    const invoiceNumber = getInvoiceNumber(order.id);
-    const pdfDoc = generateInvoice(order, order.order_items, status);
-
-    // Buffer the PDF fully before sending — required for Vercel serverless
-    const chunks = [];
-    pdfDoc.on("data", (chunk) => chunks.push(chunk));
-    pdfDoc.on("end", () => {
-      const pdfBuffer = Buffer.concat(chunks);
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="invoice-${invoiceNumber}.pdf"`
-      );
-      res.setHeader("Content-Length", pdfBuffer.length);
-      res.end(pdfBuffer);
-    });
-    pdfDoc.on("error", (err) => {
-      console.error("PDF STREAM ERROR:", err);
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          message: "Failed to generate invoice PDF",
-        });
-      }
-    });
-  } catch (error) {
-    console.error("INVOICE GENERATION ERROR:", error);
-    if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Failed to generate invoice",
-      });
-    }
-  }
-}
-
-app.get("/api/orders/:id/invoice", handleInvoiceDownload);
-app.get("/orders/:id/invoice", handleInvoiceDownload);
-app.get("/api/invoice", handleInvoiceDownload);
-app.get("/invoice", handleInvoiceDownload);
 
 app.post("/api/orders", async (req, res) => {
   try {
