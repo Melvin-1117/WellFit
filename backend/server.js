@@ -17,6 +17,12 @@ app.use(express.json({ limit: "10mb" }));
 
 // URL Normalizer for Vercel Serverless Function rewrites
 app.use((req, res, next) => {
+  if (req.headers["x-forwarded-url"]) {
+    try {
+      const urlObj = new URL(req.headers["x-forwarded-url"], "http://localhost");
+      req.url = urlObj.pathname + urlObj.search;
+    } catch (e) {}
+  }
   if (!req.url.startsWith("/api") && !req.url.startsWith("/uploads")) {
     req.url = "/api" + (req.url.startsWith("/") ? "" : "/") + req.url;
   }
@@ -732,7 +738,7 @@ app.get("/api/orders", async (req, res) => {
 });
 
 // INVOICE PDF DOWNLOAD
-app.get("/api/orders/:id/invoice", async (req, res) => {
+app.get(["/api/orders/:id/invoice", "/orders/:id/invoice"], async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -758,18 +764,24 @@ app.get("/api/orders/:id/invoice", async (req, res) => {
     }
 
     const { id } = req.params;
+    const numId = parseInt(id, 10);
 
-    // Fetch order with items
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select(`
-        *,
-        order_items (*)
-      `)
-      .eq("id", id)
-      .maybeSingle();
+    // Fetch order with items (supporting integer or UUID id)
+    let query = supabase.from("orders").select(`
+      *,
+      order_items (*)
+    `);
+
+    if (!isNaN(numId)) {
+      query = query.eq("id", numId);
+    } else {
+      query = query.eq("id", id);
+    }
+
+    const { data: order, error: orderError } = await query.maybeSingle();
 
     if (orderError || !order) {
+      console.error("INVOICE FETCH ERROR:", orderError || "Order not found for ID " + id);
       return res.status(404).json({
         success: false,
         message: "Order not found",
@@ -799,7 +811,6 @@ app.get("/api/orders/:id/invoice", async (req, res) => {
     const pdfDoc = generateInvoice(order, order.order_items, status);
 
     // Buffer the PDF fully before sending — required for Vercel serverless
-    // (serverless functions don't support stream piping reliably)
     const chunks = [];
     pdfDoc.on("data", (chunk) => chunks.push(chunk));
     pdfDoc.on("end", () => {
@@ -814,17 +825,21 @@ app.get("/api/orders/:id/invoice", async (req, res) => {
     });
     pdfDoc.on("error", (err) => {
       console.error("PDF STREAM ERROR:", err);
-      res.status(500).json({
-        success: false,
-        message: "Failed to generate invoice PDF",
-      });
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: "Failed to generate invoice PDF",
+        });
+      }
     });
   } catch (error) {
     console.error("INVOICE GENERATION ERROR:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message || "Failed to generate invoice",
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to generate invoice",
+      });
+    }
   }
 });
 
