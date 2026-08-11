@@ -798,13 +798,27 @@ app.get("/api/orders/:id/invoice", async (req, res) => {
     const invoiceNumber = getInvoiceNumber(order.id);
     const pdfDoc = generateInvoice(order, order.order_items, status);
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="invoice-${invoiceNumber}.pdf"`
-    );
-
-    pdfDoc.pipe(res);
+    // Buffer the PDF fully before sending — required for Vercel serverless
+    // (serverless functions don't support stream piping reliably)
+    const chunks = [];
+    pdfDoc.on("data", (chunk) => chunks.push(chunk));
+    pdfDoc.on("end", () => {
+      const pdfBuffer = Buffer.concat(chunks);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="invoice-${invoiceNumber}.pdf"`
+      );
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.end(pdfBuffer);
+    });
+    pdfDoc.on("error", (err) => {
+      console.error("PDF STREAM ERROR:", err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate invoice PDF",
+      });
+    });
   } catch (error) {
     console.error("INVOICE GENERATION ERROR:", error);
     res.status(500).json({
