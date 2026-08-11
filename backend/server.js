@@ -850,6 +850,19 @@ async function handleInvoiceDownload(req, res) {
 
 app.get("/api/orders/:id/invoice", handleInvoiceDownload);
 app.get("/orders/:id/invoice", handleInvoiceDownload);
+app.get("/api/orders/*", (req, res, next) => {
+  const currentPath = req.path || req.url || "";
+  if (currentPath.endsWith("/invoice")) {
+    const parts = currentPath.split("?")[0].split("/").filter(Boolean);
+    const invoiceIdx = parts.indexOf("invoice");
+    if (invoiceIdx > 0 && parts[invoiceIdx - 1]) {
+      req.params = req.params || {};
+      req.params.id = parts[invoiceIdx - 1];
+      return handleInvoiceDownload(req, res);
+    }
+  }
+  next();
+});
 
 app.post("/api/orders", async (req, res) => {
   try {
