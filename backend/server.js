@@ -34,6 +34,27 @@ async function isUserAdmin(user) {
   }
 }
 
+// Helper to extract order ID from any parameter or URL string
+function extractOrderIdFromRequest(req) {
+  if (req.params && req.params.id) return req.params.id;
+  if (req.query && req.query.id) return req.query.id;
+  if (req.query && req.query.orderId) return req.query.orderId;
+
+  const fullUrl = `${req.originalUrl || ""} ${req.url || ""} ${req.headers["x-invoke-path"] || ""} ${req.headers["x-matched-path"] || ""}`;
+
+  const queryMatch = fullUrl.match(/[?&](?:id|orderId)=([^&\s]+)/i);
+  if (queryMatch && queryMatch[1]) {
+    return decodeURIComponent(queryMatch[1]);
+  }
+
+  const pathMatch = fullUrl.match(/(?:orders|invoice)\/([^\/\?\s]+)/i);
+  if (pathMatch && pathMatch[1] && pathMatch[1] !== "invoice" && pathMatch[1] !== "index.js") {
+    return decodeURIComponent(pathMatch[1]);
+  }
+
+  return null;
+}
+
 // INVOICE PDF DOWNLOAD HANDLER
 async function handleInvoiceDownload(req, res) {
   try {
@@ -65,7 +86,7 @@ async function handleInvoiceDownload(req, res) {
       });
     }
 
-    const id = req.params?.id || req.query?.id || req.query?.orderId;
+    const id = extractOrderIdFromRequest(req);
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -199,17 +220,30 @@ app.use((req, res, next) => {
 });
 
 // INVOICE TOP-PRIORITY INTERCEPTOR
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   if (req.method !== "GET" && req.method !== "HEAD") return next();
-  const rawUrl = req.originalUrl || req.url || "";
-  if (rawUrl.includes("invoice")) {
+  const rawUrl = `${req.originalUrl || ""} ${req.url || ""} ${req.headers["x-invoke-path"] || ""}`;
+  if (
+    rawUrl.includes("invoice") ||
+    (req.query && (req.query.invoice !== undefined || req.query.download !== undefined))
+  ) {
     const match = rawUrl.match(/orders\/([^\/\?]+)\/invoice/i);
     if (match && match[1]) {
       req.params = req.params || {};
       req.params.id = match[1];
     }
-    handleInvoiceDownload(req, res).catch(next);
-    return;
+
+    try {
+      await handleInvoiceDownload(req, res);
+    } catch (err) {
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: err.message || "Failed to generate invoice PDF",
+        });
+      }
+    }
+    return; // NEVER CALL next() SO IT NEVER FALLS THROUGH TO GET /api/orders!
   }
   next();
 });
