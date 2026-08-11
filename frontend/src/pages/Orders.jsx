@@ -117,19 +117,14 @@ function Orders() {
         return;
       }
 
-      let response = await fetch(`${API_URL}/api/orders/${orderId}/invoice`, {
+      let response = await fetch(`${API_URL}/api/orders?invoice=true&id=${orderId}`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
 
-      if (!response.ok && response.status !== 404) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Failed to generate invoice (${response.status})`);
-      }
-
       if (!response.ok && response.status === 404) {
-        response = await fetch(`${API_URL}/api/invoice?id=${orderId}`, {
+        response = await fetch(`${API_URL}/api/orders/${orderId}/invoice`, {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
