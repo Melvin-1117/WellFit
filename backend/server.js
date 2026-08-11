@@ -912,13 +912,14 @@ app.get("/api/orders/invoice", handleInvoiceDownload);
 // CUSTOMER ORDERS ENDPOINTS
 app.get("/api/orders", async (req, res) => {
   try {
-    if (
-      req.query &&
-      (req.query.invoice !== undefined ||
-        req.query.download !== undefined ||
-        req.query.id !== undefined ||
-        req.query.orderId !== undefined)
-    ) {
+    const extractedId = extractOrderIdFromRequest(req);
+    const hasInvoiceQuery =
+      req.query?.invoice !== undefined ||
+      req.query?.download !== undefined ||
+      (req.originalUrl || "").includes("invoice") ||
+      (req.url || "").includes("invoice");
+
+    if (extractedId || hasInvoiceQuery) {
       return handleInvoiceDownload(req, res);
     }
 
