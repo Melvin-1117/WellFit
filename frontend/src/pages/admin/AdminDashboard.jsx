@@ -3,6 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { resolveImageUrl } from "../../utils/imageUrl";
 import { API_URL } from "../../utils/apiConfig";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import InventoryOutlinedIcon from "@mui/icons-material/InventoryOutlined";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
+import CloseIcon from "@mui/icons-material/Close";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import "./Admin.css";
 
 function AdminDashboard() {
@@ -213,7 +219,7 @@ function AdminDashboard() {
             className="btn-admin-secondary"
             onClick={() => fetchAdminData()}
           >
-            🔄 Refresh Data
+            <RefreshIcon style={{ fontSize: 18, marginRight: 4 }} /> Refresh Data
           </button>
 
           <Link to="/admin/products/new" className="btn-admin-primary">
@@ -231,7 +237,7 @@ function AdminDashboard() {
             onClick={() => setToast(null)}
             style={{ background: "none", border: "none", cursor: "pointer", fontWeight: "bold" }}
           >
-            ✕
+            <CloseIcon style={{ fontSize: 18 }} />
           </button>
         </div>
       )}
@@ -239,7 +245,7 @@ function AdminDashboard() {
       {/* Metrics Banner */}
       <div className="admin-metrics-grid">
         <div className="admin-metric-card">
-          <div className="admin-metric-icon">📦</div>
+          <div className="admin-metric-icon"><InventoryOutlinedIcon style={{ fontSize: 28 }} /></div>
           <div className="admin-metric-info">
             <h3>{stats.totalProducts || products.length}</h3>
             <p>Total Products</p>
@@ -247,7 +253,7 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-metric-card">
-          <div className="admin-metric-icon">🛍️</div>
+          <div className="admin-metric-icon"><ShoppingBagOutlinedIcon style={{ fontSize: 28 }} /></div>
           <div className="admin-metric-info">
             <h3>{stats.totalOrders || orders.length}</h3>
             <p>Total Orders</p>
@@ -255,7 +261,7 @@ function AdminDashboard() {
         </div>
 
         <div className="admin-metric-card">
-          <div className="admin-metric-icon">💰</div>
+          <div className="admin-metric-icon"><PaidOutlinedIcon style={{ fontSize: 28 }} /></div>
           <div className="admin-metric-info">
             <h3>₹{stats.totalRevenue ? stats.totalRevenue.toLocaleString() : "0"}</h3>
             <p>Total Revenue</p>
@@ -283,7 +289,7 @@ function AdminDashboard() {
           </button>
         </div>
 
-        <span className="live-badge">🟢 Live Sync Active</span>
+        <span className="live-badge"><FiberManualRecordIcon style={{ fontSize: 12, color: "#22c55e", marginRight: 4 }} /> Live Sync Active</span>
       </div>
 
       {/* Tab 1: Products Management */}

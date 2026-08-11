@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import CloseIcon from "@mui/icons-material/Close";
 import "./Checkout.css";
 
 import { API_URL } from "../utils/apiConfig";
@@ -285,7 +287,7 @@ function Checkout() {
             {couponApplied ? (
               <div className="coupon-applied">
                 <div className="coupon-badge">
-                  <span>🎉 {couponApplied.code}</span>
+                  <span><LocalOfferOutlinedIcon style={{ fontSize: 16, marginRight: 4, verticalAlign: "middle" }} /> {couponApplied.code}</span>
                   <span className="coupon-desc">{couponApplied.description}</span>
                 </div>
                 <button
@@ -293,7 +295,7 @@ function Checkout() {
                   className="coupon-remove"
                   onClick={handleRemoveCoupon}
                 >
-                  ✕ Remove
+                  <CloseIcon style={{ fontSize: 14, marginRight: 2, verticalAlign: "middle" }} /> Remove
                 </button>
               </div>
             ) : (

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import "./Orders.css";
 
 import { API_URL } from "../utils/apiConfig";
@@ -21,7 +23,7 @@ function OrderTracker({ status }) {
   if (isCancelled) {
     return (
       <div className="order-tracker-cancelled">
-        <span className="cancelled-icon">✕</span>
+        <CancelOutlinedIcon style={{ fontSize: 20 }} />
         <span>Order Cancelled</span>
       </div>
     );
@@ -40,7 +42,7 @@ function OrderTracker({ status }) {
               className={`tracker-step ${isCompleted ? "completed" : ""} ${isActive ? "active" : ""}`}
             >
               <div className="tracker-dot">
-                {isCompleted ? "✓" : idx + 1}
+                {isCompleted ? <CheckCircleOutlinedIcon style={{ fontSize: 16 }} /> : idx + 1}
               </div>
               <span className="tracker-label">{step}</span>
             </div>

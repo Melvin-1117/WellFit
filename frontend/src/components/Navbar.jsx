@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import CartButton from "./CartButton";
 import { useAuth } from "../context/AuthContext";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 
 function Navbar() {
   const { user, isAdmin, logout } = useAuth();
@@ -78,7 +80,11 @@ function Navbar() {
         aria-label="Toggle navigation menu"
         aria-expanded={menuOpen}
       >
-        {menuOpen ? "✕" : "☰"}
+        {menuOpen ? (
+          <CloseIcon style={{ fontSize: 24 }} />
+        ) : (
+          <MenuIcon style={{ fontSize: 24 }} />
+        )}
       </button>
 
       <div

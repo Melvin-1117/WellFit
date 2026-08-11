@@ -3,6 +3,8 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { API_URL } from "../../utils/apiConfig";
 import { resolveImageUrl } from "../../utils/imageUrl";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import CircularProgress from "@mui/material/CircularProgress";
 import "./Admin.css";
 
 // Helper function to compress image files to lightweight base64 data URLs (~30-80KB)
@@ -366,12 +368,12 @@ function AdminProductForm() {
 
               {uploading ? (
                 <div className="upload-status">
-                  <span className="upload-spinner">⏳</span>
+                  <CircularProgress size={24} style={{ color: "#5483B3" }} />
                   <p>Uploading image...</p>
                 </div>
               ) : (
                 <div className="upload-content">
-                  <span className="upload-icon">📁</span>
+                  <CloudUploadOutlinedIcon style={{ fontSize: 36, color: "#9ca3af" }} />
                   <p><strong>Drop an image here</strong> or click to browse</p>
                   <span className="upload-hint">JPG, PNG, WebP · Max 5MB</span>
                 </div>
