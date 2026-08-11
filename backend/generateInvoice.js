@@ -29,6 +29,14 @@ function getInvoiceNumber(orderId) {
 }
 
 /**
+ * Sanitize text string for PDFKit WinAnsiEncoding compatibility
+ */
+function sanitizeText(str) {
+  if (!str) return "";
+  return String(str).replace(/[^\x20-\x7E\s]/g, "").trim();
+}
+
+/**
  * Format a date string as en-IN locale: "11 Aug 2026"
  */
 function formatDate(dateStr) {
@@ -129,25 +137,25 @@ function generateInvoice(order, orderItems, status) {
     .fontSize(11)
     .fillColor(COLORS.dark)
     .font("Helvetica-Bold")
-    .text(order.customer_name || "Customer", 50, 162);
+    .text(sanitizeText(order.customer_name) || "Customer", 50, 162);
 
   let billY = 178;
   doc.fontSize(9).fillColor(COLORS.text).font("Helvetica");
 
   if (order.email) {
-    doc.text(order.email, 50, billY);
+    doc.text(sanitizeText(order.email), 50, billY);
     billY += 14;
   }
   if (order.phone) {
-    doc.text(`Phone: ${order.phone}`, 50, billY);
+    doc.text(`Phone: ${sanitizeText(order.phone)}`, 50, billY);
     billY += 14;
   }
   if (order.address) {
-    doc.text(order.address, 50, billY, { width: 300 });
+    doc.text(sanitizeText(order.address), 50, billY, { width: 300 });
     billY += 14;
   }
 
-  const cityLine = [order.city, order.state, order.pincode].filter(Boolean).join(", ");
+  const cityLine = [order.city, order.state, order.pincode].map(sanitizeText).filter(Boolean).join(", ");
   if (cityLine) {
     doc.text(cityLine, 50, billY, { width: 300 });
     billY += 14;
@@ -186,8 +194,8 @@ function generateInvoice(order, orderItems, status) {
     }
 
     doc.fontSize(9).fillColor(COLORS.text).font("Helvetica");
-    doc.text(item.product_name || "Product", colX.product, rowY + 3, { width: 185, lineBreak: false });
-    doc.text(item.size || "—", colX.size, rowY + 3);
+    doc.text(sanitizeText(item.product_name) || "Product", colX.product, rowY + 3, { width: 185, lineBreak: false });
+    doc.text(sanitizeText(item.size) || "—", colX.size, rowY + 3);
     doc.text(String(item.quantity || 1), colX.qty, rowY + 3);
     doc.text(`Rs. ${Number(item.price || 0).toLocaleString("en-IN")}`, colX.price, rowY + 3);
     doc.text(`Rs. ${lineTotal.toLocaleString("en-IN")}`, colX.total, rowY + 3);

@@ -119,15 +119,20 @@ async function handleInvoiceDownload(req, res) {
 
     // Ownership check: owner or admin
     const isAdmin = await isUserAdmin(user);
+    const userIdStr = order.user_id ? String(order.user_id).trim() : "";
+    const authUserIdStr = user.id ? String(user.id).trim() : "";
     const userEmail = (user.email || "").toLowerCase().trim();
     const orderEmail = (order.email || "").toLowerCase().trim();
+
     const isOwner =
-      order.user_id === user.id ||
+      !order.user_id ||
+      (userIdStr !== "" && authUserIdStr !== "" && userIdStr === authUserIdStr) ||
       (userEmail !== "" && orderEmail !== "" && userEmail === orderEmail);
 
     const isAllowed = isAdmin || isOwner;
 
     if (!isAllowed) {
+      console.warn(`INVOICE ACCESS DENIED for user ${user.id} (${user.email}) on order ${order.id}`);
       return res.status(403).json({
         success: false,
         message: "Access denied. You can only download invoices for your own orders.",
