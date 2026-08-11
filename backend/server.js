@@ -904,6 +904,11 @@ app.get("/api/admin/stats", async (req, res) => {
   }
 });
 
+// DEDICATED INVOICE ENDPOINTS
+app.get("/api/invoice", handleInvoiceDownload);
+app.get("/api/orders/:id/invoice", handleInvoiceDownload);
+app.get("/api/orders/invoice", handleInvoiceDownload);
+
 // CUSTOMER ORDERS ENDPOINTS
 app.get("/api/orders", async (req, res) => {
   try {
