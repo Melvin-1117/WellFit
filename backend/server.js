@@ -279,7 +279,7 @@ async function handleInvoiceDownload(req, res) {
 
     const adminCheck = await verifyAdmin(req);
 
-    // Fetch order with items (supporting integer or UUID id)
+    // Fetch order with items by ID directly
     let query = supabase.from("orders").select(`
       *,
       order_items (*)
@@ -289,11 +289,6 @@ async function handleInvoiceDownload(req, res) {
       query = query.eq("id", numId);
     } else {
       query = query.eq("id", id);
-    }
-
-    // Apply user ownership filter for RLS policy compatibility unless admin
-    if (!adminCheck.isAdmin) {
-      query = query.or(`user_id.eq.${user.id},email.eq.${user.email}`);
     }
 
     const { data: order, error: orderError } = await query.maybeSingle();
@@ -306,8 +301,14 @@ async function handleInvoiceDownload(req, res) {
       });
     }
 
-    // Authorization: owner or admin
-    let isAllowed = adminCheck.isAdmin || order.user_id === user.id || order.email === user.email;
+    // Ownership check: owner or admin
+    const userEmail = (user.email || "").toLowerCase().trim();
+    const orderEmail = (order.email || "").toLowerCase().trim();
+    const isOwner =
+      order.user_id === user.id ||
+      (userEmail !== "" && orderEmail !== "" && userEmail === orderEmail);
+
+    const isAllowed = adminCheck.isAdmin || isOwner;
 
     if (!isAllowed) {
       return res.status(403).json({
