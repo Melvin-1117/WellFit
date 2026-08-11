@@ -873,7 +873,13 @@ app.get("/api/admin/stats", async (req, res) => {
 // CUSTOMER ORDERS ENDPOINTS
 app.get("/api/orders", async (req, res) => {
   try {
-    if (req.query && (req.query.invoice || req.query.download || req.query.orderId)) {
+    if (
+      req.query &&
+      (req.query.invoice !== undefined ||
+        req.query.download !== undefined ||
+        req.query.id !== undefined ||
+        req.query.orderId !== undefined)
+    ) {
       return handleInvoiceDownload(req, res);
     }
 

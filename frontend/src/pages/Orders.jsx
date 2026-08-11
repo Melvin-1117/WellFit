@@ -151,8 +151,16 @@ function Orders() {
         let message = "Received invalid response format from server.";
         try {
           const json = JSON.parse(text);
-          if (json.message) message = json.message;
-        } catch {}
+          if (json.message) {
+            message = json.message;
+          } else if (Array.isArray(json) || json.orders) {
+            message = "Server returned order list instead of PDF document.";
+          }
+        } catch {
+          if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+            message = "Server returned HTML error page instead of PDF invoice.";
+          }
+        }
         throw new Error(message);
       }
 
