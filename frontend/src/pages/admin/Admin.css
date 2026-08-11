@@ -418,6 +418,34 @@
   border-color: #dc2626;
 }
 
+.btn-action-invoice {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  background: #f0f4f8;
+  color: #052659;
+  border: 1px solid #d1dbe8;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-action-invoice:hover:not(:disabled) {
+  background: #052659;
+  color: #ffffff;
+  border-color: #052659;
+}
+
+.btn-action-invoice:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Mobile Cards View */
 .admin-mobile-cards {
   display: none;

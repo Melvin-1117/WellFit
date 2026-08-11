@@ -7,6 +7,7 @@ require("dotenv").config();
 
 const supabase = require("./supabase");
 const { getOrderStatus, setOrderStatus } = require("./orderStatusStore");
+const { generateInvoice, getInvoiceNumber } = require("./generateInvoice");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -726,6 +727,89 @@ app.get("/api/orders", async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
+    });
+  }
+});
+
+// INVOICE PDF DOWNLOAD
+app.get("/api/orders/:id/invoice", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired session",
+      });
+    }
+
+    const { id } = req.params;
+
+    // Fetch order with items
+    const { data: order, error: orderError } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        order_items (*)
+      `)
+      .eq("id", id)
+      .maybeSingle();
+
+    if (orderError || !order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Authorization: owner or admin
+    let isAllowed = order.user_id === user.id;
+
+    if (!isAllowed) {
+      const adminCheck = await verifyAdmin(req);
+      isAllowed = adminCheck.isAdmin;
+    }
+
+    if (!isAllowed) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can only download invoices for your own orders.",
+      });
+    }
+
+    // Resolve status
+    const status = order.status || getOrderStatus(order.id);
+
+    // Generate the invoice PDF
+    const invoiceNumber = getInvoiceNumber(order.id);
+    const pdfDoc = generateInvoice(order, order.order_items, status);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="invoice-${invoiceNumber}.pdf"`
+    );
+
+    pdfDoc.pipe(res);
+  } catch (error) {
+    console.error("INVOICE GENERATION ERROR:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to generate invoice",
     });
   }
 });

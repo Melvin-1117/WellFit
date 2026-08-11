@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import "./Orders.css";
 
 import { API_URL } from "../utils/apiConfig";
@@ -64,6 +65,8 @@ function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState(null);
+  const [invoiceError, setInvoiceError] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -99,6 +102,57 @@ function Orders() {
 
     fetchOrders();
   }, []);
+
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      setDownloadingInvoiceId(orderId);
+      setInvoiceError(null);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        setInvoiceError({ id: orderId, message: "Please login to download invoice." });
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/orders/${orderId}/invoice`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to generate invoice");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      // Extract filename from Content-Disposition header, or generate one
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = `invoice-INV-WF-${String(orderId).padStart(6, "0")}.pdf`;
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = match[1];
+      }
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Invoice download error:", err);
+      setInvoiceError({ id: orderId, message: err.message || "Failed to download invoice" });
+    } finally {
+      setDownloadingInvoiceId(null);
+    }
+  };
 
   if (loading) {
     return (
@@ -159,7 +213,25 @@ function Orders() {
                   <span>TOTAL</span>
                   <strong>₹{order.total}</strong>
                 </div>
+
+                <div className="order-card-header-actions">
+                  <button
+                    type="button"
+                    className="btn-invoice"
+                    disabled={downloadingInvoiceId === order.id}
+                    onClick={() => handleDownloadInvoice(order.id)}
+                  >
+                    <FileDownloadOutlinedIcon style={{ fontSize: 16 }} />
+                    {downloadingInvoiceId === order.id ? "Generating..." : "Download Invoice"}
+                  </button>
+                </div>
               </div>
+
+              {invoiceError && invoiceError.id === order.id && (
+                <div className="invoice-error">
+                  {invoiceError.message}
+                </div>
+              )}
 
               <div className="order-items">
                 {order.order_items?.map((item) => (

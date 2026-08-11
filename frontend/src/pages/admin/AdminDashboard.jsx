@@ -9,6 +9,7 @@ import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import PaidOutlinedIcon from "@mui/icons-material/PaidOutlined";
 import CloseIcon from "@mui/icons-material/Close";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 import "./Admin.css";
 
 function AdminDashboard() {
@@ -26,6 +27,7 @@ function AdminDashboard() {
   const [deleteModalProduct, setDeleteModalProduct] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [updatingOrderStatus, setUpdatingOrderStatus] = useState(null);
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState(null);
 
   const navigate = useNavigate();
 
@@ -179,6 +181,58 @@ function AdminDashboard() {
       showToast("Server error updating status", "error");
     } finally {
       setUpdatingOrderStatus(null);
+    }
+  };
+
+  // Invoice Download Handler
+  const handleDownloadInvoice = async (orderId) => {
+    try {
+      setDownloadingInvoiceId(orderId);
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        showToast("Session expired. Please log in again.", "error");
+        return;
+      }
+
+      const response = await fetch(`${API_URL}/api/orders/${orderId}/invoice`, {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to generate invoice");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+
+      const disposition = response.headers.get("Content-Disposition");
+      let filename = `invoice-INV-WF-${String(orderId).padStart(6, "0")}.pdf`;
+      if (disposition) {
+        const match = disposition.match(/filename="?([^"]+)"?/);
+        if (match) filename = match[1];
+      }
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast(`Invoice for Order #${orderId} downloaded`, "success");
+    } catch (err) {
+      console.error("Invoice download error:", err);
+      showToast(err.message || "Failed to download invoice", "error");
+    } finally {
+      setDownloadingInvoiceId(null);
     }
   };
 
@@ -492,6 +546,7 @@ function AdminDashboard() {
                       <th>Total</th>
                       <th>Status</th>
                       <th>Update Status</th>
+                      <th>Invoice</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -553,6 +608,17 @@ function AdminDashboard() {
                             <option value="Cancelled">Cancelled</option>
                           </select>
                         </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="btn-action-invoice"
+                            disabled={downloadingInvoiceId === order.id}
+                            onClick={() => handleDownloadInvoice(order.id)}
+                          >
+                            <FileDownloadOutlinedIcon style={{ fontSize: 15 }} />
+                            {downloadingInvoiceId === order.id ? "..." : "Invoice"}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -606,6 +672,15 @@ function AdminDashboard() {
                           <option value="Cancelled">Cancelled</option>
                         </select>
                       </div>
+                      <button
+                        type="button"
+                        className="btn-action-invoice"
+                        disabled={downloadingInvoiceId === order.id}
+                        onClick={() => handleDownloadInvoice(order.id)}
+                      >
+                        <FileDownloadOutlinedIcon style={{ fontSize: 15 }} />
+                        {downloadingInvoiceId === order.id ? "..." : "Invoice"}
+                      </button>
                     </div>
                   </div>
                 ))}
