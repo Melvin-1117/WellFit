@@ -38,15 +38,20 @@ async function isUserAdmin(user) {
 async function handleInvoiceDownload(req, res) {
   try {
     const authHeader = req.headers.authorization;
+    let accessToken = null;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      accessToken = authHeader.split(" ")[1];
+    } else if (req.query && (req.query.token || req.query.accessToken)) {
+      accessToken = req.query.token || req.query.accessToken;
+    }
+
+    if (!accessToken) {
       return res.status(401).json({
         success: false,
         message: "Authentication required",
       });
     }
-
-    const accessToken = authHeader.split(" ")[1];
 
     const {
       data: { user },
@@ -158,7 +163,8 @@ app.use((req, res, next) => {
       req.params = req.params || {};
       req.params.id = match[1];
     }
-    return handleInvoiceDownload(req, res);
+    handleInvoiceDownload(req, res).catch(next);
+    return;
   }
   next();
 });
