@@ -351,6 +351,14 @@ async function handleInvoiceDownload(req, res) {
 
 app.get("/api/orders/:id/invoice", handleInvoiceDownload);
 app.get("/orders/:id/invoice", handleInvoiceDownload);
+app.get("/api/orders/:id/:action", (req, res, next) => {
+  if (req.params.action === "invoice") return handleInvoiceDownload(req, res);
+  next();
+});
+app.get("/orders/:id/:action", (req, res, next) => {
+  if (req.params.action === "invoice") return handleInvoiceDownload(req, res);
+  next();
+});
 app.get("/api/invoice", handleInvoiceDownload);
 app.get("/invoice", handleInvoiceDownload);
 
