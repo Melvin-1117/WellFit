@@ -352,16 +352,23 @@ async function handleInvoiceDownload(req, res) {
   }
 }
 
+// Global invoice route interceptor (matches any request containing invoice)
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const rawUrl = req.url || "";
+  if (rawUrl.includes("invoice")) {
+    const match = rawUrl.match(/orders\/([^\/\?]+)\/invoice/i);
+    if (match && match[1]) {
+      req.params = req.params || {};
+      req.params.id = match[1];
+    }
+    return handleInvoiceDownload(req, res);
+  }
+  next();
+});
+
 app.get("/api/orders/:id/invoice", handleInvoiceDownload);
 app.get("/orders/:id/invoice", handleInvoiceDownload);
-app.get("/api/orders/:id/:action", (req, res, next) => {
-  if (req.params.action === "invoice") return handleInvoiceDownload(req, res);
-  next();
-});
-app.get("/orders/:id/:action", (req, res, next) => {
-  if (req.params.action === "invoice") return handleInvoiceDownload(req, res);
-  next();
-});
 app.get("/api/invoice", handleInvoiceDownload);
 app.get("/invoice", handleInvoiceDownload);
 
