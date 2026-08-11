@@ -178,15 +178,32 @@ app.use((req, res, next) => {
       const params = new URLSearchParams(queryString);
       const captured = params.get("1") || params.get("0") || params.get("path");
       if (captured) {
-        let cleanPath = captured.replace(/^\//, "");
+        let cleanPath = decodeURIComponent(captured).replace(/^\//, "");
+        let embeddedQuery = "";
+        const subQIdx = cleanPath.indexOf("?");
+        if (subQIdx !== -1) {
+          embeddedQuery = cleanPath.substring(subQIdx + 1);
+          cleanPath = cleanPath.substring(0, subQIdx);
+        }
+
         if (cleanPath.startsWith("api/")) {
           cleanPath = cleanPath.substring(4);
         }
+
         params.delete("1");
         params.delete("0");
         params.delete("path");
-        const remainingQuery = params.toString();
-        req.url = "/api/" + cleanPath + (remainingQuery ? "?" + remainingQuery : "");
+
+        const combinedParams = new URLSearchParams(embeddedQuery);
+        params.forEach((v, k) => combinedParams.set(k, v));
+
+        const finalQueryStr = combinedParams.toString();
+        req.url = "/api/" + cleanPath + (finalQueryStr ? "?" + finalQueryStr : "");
+
+        req.query = {};
+        combinedParams.forEach((v, k) => {
+          req.query[k] = v;
+        });
       }
     }
   }
