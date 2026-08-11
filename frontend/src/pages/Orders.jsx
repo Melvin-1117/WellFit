@@ -117,7 +117,8 @@ function Orders() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/orders?invoice=true&id=${orderId}`, {
+      const baseUrl = API_URL || window.location.origin;
+      const response = await fetch(`${baseUrl}/api/orders?invoice=true&id=${orderId}&_t=${Date.now()}`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
