@@ -151,12 +151,25 @@ async function verifyAdmin(req) {
   return { isAdmin: true, user };
 }
 
+app.get(["/", "/api", "/api/"], (req, res) => {
+  res.json({
+    success: true,
+    message: "WellFit backend API is running successfully!",
+    version: "1.0.0",
+    endpoints: {
+      products: "/api/products",
+      orders: "/api/orders",
+      adminOrders: "/api/admin/orders",
+      adminStats: "/api/admin/stats"
+    }
+  });
+});
+
 app.get(["/api/debug-routes", "/debug-routes"], (req, res) => {
   res.json({
     url: req.url,
     originalUrl: req.originalUrl,
     baseUrl: req.baseUrl,
-    headers: req.headers,
     routes: app._router.stack
       .filter((r) => r.route)
       .map((r) => ({ path: r.route.path, methods: r.route.methods })),
