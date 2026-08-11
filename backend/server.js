@@ -15,6 +15,136 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
+// INVOICE PDF DOWNLOAD HANDLER
+async function handleInvoiceDownload(req, res) {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
+    const accessToken = authHeader.split(" ")[1];
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(accessToken);
+
+    if (userError || !user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired session",
+      });
+    }
+
+    const id = req.params?.id || req.query?.id || req.query?.orderId;
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
+    const numId = parseInt(id, 10);
+
+    const adminCheck = await verifyAdmin(req);
+
+    // Fetch order with items by ID directly
+    let query = supabase.from("orders").select(`
+      *,
+      order_items (*)
+    `);
+
+    if (!isNaN(numId)) {
+      query = query.eq("id", numId);
+    } else {
+      query = query.eq("id", id);
+    }
+
+    const { data: order, error: orderError } = await query.maybeSingle();
+
+    if (orderError || !order) {
+      console.error("INVOICE FETCH ERROR:", orderError || "Order not found for ID " + id);
+      return res.status(404).json({
+        success: false,
+        message: `Order #${id} not found`,
+      });
+    }
+
+    // Ownership check: owner or admin
+    const userEmail = (user.email || "").toLowerCase().trim();
+    const orderEmail = (order.email || "").toLowerCase().trim();
+    const isOwner =
+      order.user_id === user.id ||
+      (userEmail !== "" && orderEmail !== "" && userEmail === orderEmail);
+
+    const isAllowed = adminCheck.isAdmin || isOwner;
+
+    if (!isAllowed) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You can only download invoices for your own orders.",
+      });
+    }
+
+    // Resolve status
+    const status = order.status || getOrderStatus(order.id);
+
+    // Generate the invoice PDF
+    const invoiceNumber = getInvoiceNumber(order.id);
+    const pdfDoc = generateInvoice(order, order.order_items, status);
+
+    // Buffer the PDF fully before sending — required for Vercel serverless
+    const chunks = [];
+    pdfDoc.on("data", (chunk) => chunks.push(chunk));
+    pdfDoc.on("end", () => {
+      const pdfBuffer = Buffer.concat(chunks);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="invoice-${invoiceNumber}.pdf"`
+      );
+      res.setHeader("Content-Length", pdfBuffer.length);
+      res.end(pdfBuffer);
+    });
+    pdfDoc.on("error", (err) => {
+      console.error("PDF STREAM ERROR:", err);
+      if (!res.headersSent) {
+        res.status(500).json({
+          success: false,
+          message: "Failed to generate invoice PDF",
+        });
+      }
+    });
+  } catch (error) {
+    console.error("INVOICE GENERATION ERROR:", error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to generate invoice",
+      });
+    }
+  }
+}
+
+// INVOICE TOP-PRIORITY INTERCEPTOR (Runs BEFORE any other route/middleware)
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const rawUrl = req.originalUrl || req.url || "";
+  if (rawUrl.includes("invoice")) {
+    const match = rawUrl.match(/orders\/([^\/\?]+)\/invoice/i);
+    if (match && match[1]) {
+      req.params = req.params || {};
+      req.params.id = match[1];
+    }
+    return handleInvoiceDownload(req, res);
+  }
+  next();
+});
+
 // URL Normalizer for Vercel Serverless Function rewrites
 app.use((req, res, next) => {
   if (req.url.includes("index.js")) {
@@ -236,141 +366,6 @@ app.get("/api/auth/profile", async (req, res) => {
     });
   }
 });
-
-// INVOICE PDF DOWNLOAD
-async function handleInvoiceDownload(req, res) {
-  try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    const accessToken = authHeader.split(" ")[1];
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser(accessToken);
-
-    if (userError || !user) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid or expired session",
-      });
-    }
-
-    const id = req.params.id || req.query.id || req.query.orderId;
-    if (!id) {
-      return res.status(400).json({
-        success: false,
-        message: "Order ID is required",
-      });
-    }
-    const numId = parseInt(id, 10);
-
-    const adminCheck = await verifyAdmin(req);
-
-    // Fetch order with items by ID directly
-    let query = supabase.from("orders").select(`
-      *,
-      order_items (*)
-    `);
-
-    if (!isNaN(numId)) {
-      query = query.eq("id", numId);
-    } else {
-      query = query.eq("id", id);
-    }
-
-    const { data: order, error: orderError } = await query.maybeSingle();
-
-    if (orderError || !order) {
-      console.error("INVOICE FETCH ERROR:", orderError || "Order not found for ID " + id);
-      return res.status(404).json({
-        success: false,
-        message: `Order #${id} not found`,
-      });
-    }
-
-    // Ownership check: owner or admin
-    const userEmail = (user.email || "").toLowerCase().trim();
-    const orderEmail = (order.email || "").toLowerCase().trim();
-    const isOwner =
-      order.user_id === user.id ||
-      (userEmail !== "" && orderEmail !== "" && userEmail === orderEmail);
-
-    const isAllowed = adminCheck.isAdmin || isOwner;
-
-    if (!isAllowed) {
-      return res.status(403).json({
-        success: false,
-        message: "Access denied. You can only download invoices for your own orders.",
-      });
-    }
-
-    // Resolve status
-    const status = order.status || getOrderStatus(order.id);
-
-    // Generate the invoice PDF
-    const invoiceNumber = getInvoiceNumber(order.id);
-    const pdfDoc = generateInvoice(order, order.order_items, status);
-
-    // Buffer the PDF fully before sending — required for Vercel serverless
-    const chunks = [];
-    pdfDoc.on("data", (chunk) => chunks.push(chunk));
-    pdfDoc.on("end", () => {
-      const pdfBuffer = Buffer.concat(chunks);
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader(
-        "Content-Disposition",
-        `attachment; filename="invoice-${invoiceNumber}.pdf"`
-      );
-      res.setHeader("Content-Length", pdfBuffer.length);
-      res.end(pdfBuffer);
-    });
-    pdfDoc.on("error", (err) => {
-      console.error("PDF STREAM ERROR:", err);
-      if (!res.headersSent) {
-        res.status(500).json({
-          success: false,
-          message: "Failed to generate invoice PDF",
-        });
-      }
-    });
-  } catch (error) {
-    console.error("INVOICE GENERATION ERROR:", error);
-    if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
-        message: error.message || "Failed to generate invoice",
-      });
-    }
-  }
-}
-
-// Global invoice route interceptor (matches any request containing invoice)
-app.use((req, res, next) => {
-  if (req.method !== "GET" && req.method !== "HEAD") return next();
-  const rawUrl = req.url || "";
-  if (rawUrl.includes("invoice")) {
-    const match = rawUrl.match(/orders\/([^\/\?]+)\/invoice/i);
-    if (match && match[1]) {
-      req.params = req.params || {};
-      req.params.id = match[1];
-    }
-    return handleInvoiceDownload(req, res);
-  }
-  next();
-});
-
-app.get("/api/orders/:id/invoice", handleInvoiceDownload);
-app.get("/orders/:id/invoice", handleInvoiceDownload);
-app.get("/api/invoice", handleInvoiceDownload);
-app.get("/invoice", handleInvoiceDownload);
 
 // GET PUBLIC PRODUCTS
 app.get("/api/products", async (req, res) => {
