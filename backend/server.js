@@ -154,7 +154,7 @@ async function handleInvoiceDownload(req, res) {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
-        `attachment; filename="invoice-${invoiceNumber}.pdf"`
+        `attachment; filename="wellfit-invoice-${order.id}.pdf"`
       );
       res.setHeader("Content-Length", pdfBuffer.length);
       res.status(200).send(pdfBuffer);

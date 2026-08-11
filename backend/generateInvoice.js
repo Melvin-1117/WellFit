@@ -106,22 +106,23 @@ function generateInvoice(order, orderItems, status) {
     .fontSize(20)
     .fillColor(COLORS.dark)
     .font("Helvetica-Bold")
-    .text(titleText, 350, 50, { width: 195, align: "right" });
+    .text(titleText, 350, 45, { width: 195, align: "right" });
 
-  // Invoice number & date — right side
+  // Order ID, Invoice number & date — right side
   doc
     .fontSize(10)
     .fillColor(COLORS.text)
     .font("Helvetica")
-    .text(`Invoice: ${invoiceNumber}`, 350, 78, { width: 195, align: "right" })
-    .text(`Date: ${formatDate(order.created_at)}`, 350, 93, { width: 195, align: "right" });
+    .text(`Order ID: #${order.id}`, 350, 72, { width: 195, align: "right" })
+    .text(`Invoice: ${invoiceNumber}`, 350, 86, { width: 195, align: "right" })
+    .text(`Date: ${formatDate(order.created_at)}`, 350, 100, { width: 195, align: "right" });
 
   // Status badge
   doc
     .fontSize(9)
     .fillColor(COLORS.blue)
     .font("Helvetica-Bold")
-    .text(`Status: ${status || "Pending"}`, 350, 110, { width: 195, align: "right" });
+    .text(`Status: ${status || "Pending"}`, 350, 114, { width: 195, align: "right" });
 
   // Divider
   drawLine(doc, 130, COLORS.navy);

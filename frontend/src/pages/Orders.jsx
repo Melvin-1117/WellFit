@@ -163,7 +163,7 @@ function Orders() {
 
       // Extract filename from Content-Disposition header, or generate one
       const disposition = response.headers.get("Content-Disposition");
-      let filename = `invoice-INV-WF-${String(orderId).padStart(6, "0")}.pdf`;
+      let filename = `wellfit-invoice-${orderId}.pdf`;
       if (disposition) {
         const match = disposition.match(/filename="?([^"]+)"?/);
         if (match) filename = match[1];
