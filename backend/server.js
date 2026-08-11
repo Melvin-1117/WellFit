@@ -182,7 +182,11 @@ app.use((req, res, next) => {
         if (cleanPath.startsWith("api/")) {
           cleanPath = cleanPath.substring(4);
         }
-        req.url = "/api/" + cleanPath;
+        params.delete("1");
+        params.delete("0");
+        params.delete("path");
+        const remainingQuery = params.toString();
+        req.url = "/api/" + cleanPath + (remainingQuery ? "?" + remainingQuery : "");
       }
     }
   }
