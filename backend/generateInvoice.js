@@ -168,8 +168,8 @@ function generateInvoice(order, orderItems, status) {
   doc.text("Product", colX.product, tableTop + 7);
   doc.text("Size", colX.size, tableTop + 7);
   doc.text("Qty", colX.qty, tableTop + 7);
-  doc.text("Unit Price (₹)", colX.price, tableTop + 7);
-  doc.text("Total (₹)", colX.total, tableTop + 7);
+  doc.text("Unit Price (Rs.)", colX.price, tableTop + 7);
+  doc.text("Total (Rs.)", colX.total, tableTop + 7);
 
   // Table rows
   let rowY = tableTop + 28;
@@ -189,8 +189,8 @@ function generateInvoice(order, orderItems, status) {
     doc.text(item.product_name || "Product", colX.product, rowY + 3, { width: 185, lineBreak: false });
     doc.text(item.size || "—", colX.size, rowY + 3);
     doc.text(String(item.quantity || 1), colX.qty, rowY + 3);
-    doc.text(`₹${Number(item.price || 0).toLocaleString("en-IN")}`, colX.price, rowY + 3);
-    doc.text(`₹${lineTotal.toLocaleString("en-IN")}`, colX.total, rowY + 3);
+    doc.text(`Rs. ${Number(item.price || 0).toLocaleString("en-IN")}`, colX.price, rowY + 3);
+    doc.text(`Rs. ${lineTotal.toLocaleString("en-IN")}`, colX.total, rowY + 3);
 
     rowY += 22;
   });
@@ -205,7 +205,7 @@ function generateInvoice(order, orderItems, status) {
 
   doc.fontSize(10).fillColor(COLORS.text).font("Helvetica");
   doc.text("Subtotal:", totalsLabelX, totalsY);
-  doc.text(`₹${subtotal.toLocaleString("en-IN")}`, totalsValueX, totalsY);
+  doc.text(`Rs. ${subtotal.toLocaleString("en-IN")}`, totalsValueX, totalsY);
 
   totalsY += 18;
   doc.text("Shipping:", totalsLabelX, totalsY);
@@ -221,7 +221,7 @@ function generateInvoice(order, orderItems, status) {
     .fillColor(COLORS.dark)
     .font("Helvetica-Bold")
     .text("Grand Total:", totalsLabelX, totalsY)
-    .text(`₹${grandTotal.toLocaleString("en-IN")}`, totalsValueX, totalsY);
+    .text(`Rs. ${grandTotal.toLocaleString("en-IN")}`, totalsValueX, totalsY);
 
   // ─── FOOTER ────────────────────────────────────────────────
   const footerY = Math.max(totalsY + 60, 650);
