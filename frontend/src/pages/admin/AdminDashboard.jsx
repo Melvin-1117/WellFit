@@ -198,11 +198,19 @@ function AdminDashboard() {
         return;
       }
 
-      const response = await fetch(`${API_URL}/api/orders/${orderId}/invoice`, {
+      let response = await fetch(`${API_URL}/api/orders/${orderId}/invoice`, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
+
+      if (response.status === 404) {
+        response = await fetch(`${API_URL}/api/invoice?id=${orderId}`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

@@ -768,7 +768,13 @@ async function handleInvoiceDownload(req, res) {
       });
     }
 
-    const { id } = req.params;
+    const id = req.params.id || req.query.id || req.query.orderId;
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
     const numId = parseInt(id, 10);
 
     // Fetch order with items (supporting integer or UUID id)
@@ -850,6 +856,8 @@ async function handleInvoiceDownload(req, res) {
 
 app.get("/api/orders/:id/invoice", handleInvoiceDownload);
 app.get("/orders/:id/invoice", handleInvoiceDownload);
+app.get("/api/invoice", handleInvoiceDownload);
+app.get("/invoice", handleInvoiceDownload);
 
 app.post("/api/orders", async (req, res) => {
   try {
