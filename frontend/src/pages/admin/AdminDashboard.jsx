@@ -204,7 +204,12 @@ function AdminDashboard() {
         },
       });
 
-      if (response.status === 404) {
+      if (!response.ok && response.status !== 404) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Failed to generate invoice (${response.status})`);
+      }
+
+      if (!response.ok && response.status === 404) {
         response = await fetch(`${API_URL}/api/invoice?id=${orderId}`, {
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -214,7 +219,7 @@ function AdminDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to generate invoice");
+        throw new Error(errorData.message || `Order #${orderId} not found (${response.status})`);
       }
 
       const blob = await response.blob();
