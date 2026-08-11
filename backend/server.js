@@ -153,23 +153,7 @@ async function handleInvoiceDownload(req, res) {
   }
 }
 
-// INVOICE TOP-PRIORITY INTERCEPTOR (Runs BEFORE any other route/middleware)
-app.use((req, res, next) => {
-  if (req.method !== "GET" && req.method !== "HEAD") return next();
-  const rawUrl = req.originalUrl || req.url || "";
-  if (rawUrl.includes("invoice")) {
-    const match = rawUrl.match(/orders\/([^\/\?]+)\/invoice/i);
-    if (match && match[1]) {
-      req.params = req.params || {};
-      req.params.id = match[1];
-    }
-    handleInvoiceDownload(req, res).catch(next);
-    return;
-  }
-  next();
-});
-
-// URL Normalizer for Vercel Serverless Function rewrites
+// URL Normalizer for Vercel Serverless Function rewrites (MUST run before route matching)
 app.use((req, res, next) => {
   if (req.url.includes("index.js")) {
     const qIdx = req.url.indexOf("?");
@@ -210,6 +194,22 @@ app.use((req, res, next) => {
 
   if (!req.url.startsWith("/api") && !req.url.startsWith("/uploads")) {
     req.url = "/api" + (req.url.startsWith("/") ? "" : "/") + req.url;
+  }
+  next();
+});
+
+// INVOICE TOP-PRIORITY INTERCEPTOR
+app.use((req, res, next) => {
+  if (req.method !== "GET" && req.method !== "HEAD") return next();
+  const rawUrl = req.originalUrl || req.url || "";
+  if (rawUrl.includes("invoice")) {
+    const match = rawUrl.match(/orders\/([^\/\?]+)\/invoice/i);
+    if (match && match[1]) {
+      req.params = req.params || {};
+      req.params.id = match[1];
+    }
+    handleInvoiceDownload(req, res).catch(next);
+    return;
   }
   next();
 });
