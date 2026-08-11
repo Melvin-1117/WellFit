@@ -277,6 +277,8 @@ async function handleInvoiceDownload(req, res) {
     }
     const numId = parseInt(id, 10);
 
+    const adminCheck = await verifyAdmin(req);
+
     // Fetch order with items (supporting integer or UUID id)
     let query = supabase.from("orders").select(`
       *,
@@ -289,23 +291,23 @@ async function handleInvoiceDownload(req, res) {
       query = query.eq("id", id);
     }
 
+    // Apply user ownership filter for RLS policy compatibility unless admin
+    if (!adminCheck.isAdmin) {
+      query = query.or(`user_id.eq.${user.id},email.eq.${user.email}`);
+    }
+
     const { data: order, error: orderError } = await query.maybeSingle();
 
     if (orderError || !order) {
       console.error("INVOICE FETCH ERROR:", orderError || "Order not found for ID " + id);
       return res.status(404).json({
         success: false,
-        message: "Order not found",
+        message: `Order #${id} not found`,
       });
     }
 
     // Authorization: owner or admin
-    let isAllowed = order.user_id === user.id;
-
-    if (!isAllowed) {
-      const adminCheck = await verifyAdmin(req);
-      isAllowed = adminCheck.isAdmin;
-    }
+    let isAllowed = adminCheck.isAdmin || order.user_id === user.id || order.email === user.email;
 
     if (!isAllowed) {
       return res.status(403).json({
