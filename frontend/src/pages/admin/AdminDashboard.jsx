@@ -212,13 +212,25 @@ function AdminDashboard() {
         });
       }
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `Order #${orderId} not found (${response.status})`);
+      const contentType = response.headers.get("content-type") || "";
+
+      if (!response.ok || !contentType.includes("application/pdf")) {
+        const text = await response.text().catch(() => "");
+        let message = `Failed to generate invoice (${response.status})`;
+        try {
+          const json = JSON.parse(text);
+          if (json.message) message = json.message;
+        } catch {
+          if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+            message = "Server returned HTML error page instead of PDF invoice.";
+          }
+        }
+        throw new Error(message);
       }
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      const rawBlob = await response.blob();
+      const pdfBlob = new Blob([rawBlob], { type: "application/pdf" });
+      const url = URL.createObjectURL(pdfBlob);
 
       const disposition = response.headers.get("Content-Disposition");
       let filename = `invoice-INV-WF-${String(orderId).padStart(6, "0")}.pdf`;
@@ -233,7 +245,7 @@ function AdminDashboard() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
 
       showToast(`Invoice for Order #${orderId} downloaded`, "success");
     } catch (err) {

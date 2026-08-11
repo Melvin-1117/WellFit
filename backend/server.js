@@ -131,7 +131,7 @@ async function handleInvoiceDownload(req, res) {
         `attachment; filename="invoice-${invoiceNumber}.pdf"`
       );
       res.setHeader("Content-Length", pdfBuffer.length);
-      res.end(pdfBuffer);
+      res.status(200).send(pdfBuffer);
     });
     pdfDoc.on("error", (err) => {
       console.error("PDF STREAM ERROR:", err);
