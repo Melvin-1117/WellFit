@@ -22,12 +22,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve uploaded images statically
+// Serve uploaded images statically (safely guarded for serverless environments)
 const uploadsDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+if (!process.env.VERCEL) {
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+    app.use("/uploads", express.static(uploadsDir));
+  } catch (e) {
+    console.warn("Uploads directory setup skipped:", e.message);
+  }
 }
-app.use("/uploads", express.static(uploadsDir));
 
 // Coupon definitions
 const COUPONS = {
@@ -846,7 +852,7 @@ app.post("/api/upload", async (req, res) => {
       });
     }
 
-    const { imageData, fileName } = req.body;
+    const { imageData } = req.body || {};
 
     if (!imageData) {
       return res.status(400).json({
@@ -857,28 +863,34 @@ app.post("/api/upload", async (req, res) => {
 
     // Support base64 Data URLs and external URLs for Vercel live serverless compatibility
     if (
-      imageData.startsWith("data:image/") ||
-      imageData.startsWith("http://") ||
-      imageData.startsWith("https://")
+      typeof imageData === "string" &&
+      (imageData.startsWith("data:image/") ||
+        imageData.startsWith("http://") ||
+        imageData.startsWith("https://"))
     ) {
-      // Optional disk cache for non-Vercel local environment
-      try {
-        const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
-        if (base64Match && !process.env.VERCEL) {
-          const ext = base64Match[1];
-          const base64Data = base64Match[2];
-          const buffer = Buffer.from(base64Data, "base64");
-          const uniqueName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${ext}`;
-          const filePath = path.join(uploadsDir, uniqueName);
-          fs.writeFileSync(filePath, buffer);
+      // Optional disk save for local development only
+      if (!process.env.VERCEL) {
+        try {
+          const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
+          if (base64Match) {
+            const ext = base64Match[1];
+            const base64Data = base64Match[2];
+            const buffer = Buffer.from(base64Data, "base64");
+            if (!fs.existsSync(uploadsDir)) {
+              fs.mkdirSync(uploadsDir, { recursive: true });
+            }
+            const uniqueName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${ext}`;
+            const filePath = path.join(uploadsDir, uniqueName);
+            fs.writeFileSync(filePath, buffer);
+          }
+        } catch (e) {
+          console.warn("Local disk save skipped:", e.message);
         }
-      } catch (e) {
-        console.warn("Local disk save skipped:", e.message);
       }
 
-      return res.json({
+      return res.status(200).json({
         success: true,
-        message: "Image uploaded successfully",
+        message: "Image processed successfully",
         imageUrl: imageData,
       });
     }
@@ -891,7 +903,7 @@ app.post("/api/upload", async (req, res) => {
     console.error("UPLOAD ERROR:", error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Failed to process image upload",
     });
   }
 });

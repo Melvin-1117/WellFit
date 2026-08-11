@@ -142,21 +142,27 @@ function AdminProductForm() {
       } = await supabase.auth.getSession();
 
       if (session) {
-        const res = await fetch(`${API_URL}/api/upload`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
-            imageData: compressedDataUrl,
-            fileName: file.name,
-          }),
-        });
+        try {
+          const res = await fetch(`${API_URL}/api/upload`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({
+              imageData: compressedDataUrl,
+              fileName: file.name,
+            }),
+          });
 
-        const data = await res.json();
-        if (data.success && data.imageUrl) {
-          setFormData((prev) => ({ ...prev, image: data.imageUrl }));
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.imageUrl) {
+              setFormData((prev) => ({ ...prev, image: data.imageUrl }));
+            }
+          }
+        } catch (serverErr) {
+          console.warn("Backend upload sync skipped, using compressed Data URL directly:", serverErr);
         }
       }
     } catch (err) {
