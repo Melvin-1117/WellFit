@@ -17,16 +17,6 @@ app.use(express.json({ limit: "10mb" }));
 
 // URL Normalizer for Vercel Serverless Function rewrites
 app.use((req, res, next) => {
-  const matchedPath = req.headers["x-matched-path"] || req.headers["x-now-route-matches"];
-  if (matchedPath && typeof matchedPath === "string") {
-    req.url = matchedPath;
-  } else if (req.headers["x-forwarded-url"]) {
-    try {
-      const urlObj = new URL(req.headers["x-forwarded-url"], "http://localhost");
-      req.url = urlObj.pathname + urlObj.search;
-    } catch (e) {}
-  }
-
   if (!req.url.startsWith("/api") && !req.url.startsWith("/uploads")) {
     req.url = "/api" + (req.url.startsWith("/") ? "" : "/") + req.url;
   }
@@ -753,7 +743,7 @@ app.get("/api/orders", async (req, res) => {
 });
 
 // INVOICE PDF DOWNLOAD
-app.get(["/api/orders/:id/invoice", "/orders/:id/invoice"], async (req, res) => {
+async function handleInvoiceDownload(req, res) {
   try {
     const authHeader = req.headers.authorization;
 
@@ -856,7 +846,10 @@ app.get(["/api/orders/:id/invoice", "/orders/:id/invoice"], async (req, res) => 
       });
     }
   }
-});
+}
+
+app.get("/api/orders/:id/invoice", handleInvoiceDownload);
+app.get("/orders/:id/invoice", handleInvoiceDownload);
 
 app.post("/api/orders", async (req, res) => {
   try {
