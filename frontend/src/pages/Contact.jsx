@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
+import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
+import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import "./InfoPages.css";
 
 function Contact() {
@@ -39,7 +44,7 @@ function Contact() {
           {/* Left Info Cards */}
           <div className="contact-info-cards">
             <div className="contact-info-card">
-              <div className="contact-info-icon">✉</div>
+              <div className="contact-info-icon"><MailOutlinedIcon style={{ fontSize: 24 }} /></div>
               <div className="contact-info-content">
                 <h3>Email Support</h3>
                 <p>support@wellfit.in</p>
@@ -48,7 +53,7 @@ function Contact() {
             </div>
 
             <div className="contact-info-card">
-              <div className="contact-info-icon">📞</div>
+              <div className="contact-info-icon"><PhoneOutlinedIcon style={{ fontSize: 24 }} /></div>
               <div className="contact-info-content">
                 <h3>Phone & Hotline</h3>
                 <p>+91 1800-200-WELL</p>
@@ -57,7 +62,7 @@ function Contact() {
             </div>
 
             <div className="contact-info-card">
-              <div className="contact-info-icon">📍</div>
+              <div className="contact-info-icon"><LocationOnOutlinedIcon style={{ fontSize: 24 }} /></div>
               <div className="contact-info-content">
                 <h3>Headquarters</h3>
                 <p>100 Fashion Hub, Lower Parel</p>
@@ -66,7 +71,7 @@ function Contact() {
             </div>
 
             <div className="contact-info-card">
-              <div className="contact-info-icon">💬</div>
+              <div className="contact-info-icon"><ChatBubbleOutlineOutlinedIcon style={{ fontSize: 24 }} /></div>
               <div className="contact-info-content">
                 <h3>Live Chat</h3>
                 <p>Available on our website 24/7 for instant support.</p>
@@ -80,7 +85,7 @@ function Contact() {
 
             {submitted && (
               <div className="form-alert-success">
-                <span>✓</span>
+                <CheckCircleOutlinedIcon style={{ fontSize: 20, marginRight: 6 }} />
                 <span>Thank you! Your message has been sent successfully. We'll get back to you shortly.</span>
               </div>
             )}

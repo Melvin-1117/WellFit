@@ -1,4 +1,8 @@
 import { Link } from "react-router-dom";
+import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
+import EnergySavingsLeafOutlinedIcon from "@mui/icons-material/EnergySavingsLeafOutlined";
+import StyleOutlinedIcon from "@mui/icons-material/StyleOutlined";
+import HandshakeOutlinedIcon from "@mui/icons-material/HandshakeOutlined";
 import "./InfoPages.css";
 
 function About() {
@@ -57,22 +61,22 @@ function About() {
           <h2>Our Core Values</h2>
           <div className="values-grid">
             <div className="value-box">
-              <span className="value-icon">✨</span>
+              <span className="value-icon"><AutoAwesomeOutlinedIcon style={{ fontSize: 28 }} /></span>
               <h3>Premium Quality</h3>
               <p>We source ultra-soft, long-lasting fabrics that maintain shape and vibrancy wash after wash.</p>
             </div>
             <div className="value-box">
-              <span className="value-icon">🌿</span>
+              <span className="value-icon"><EnergySavingsLeafOutlinedIcon style={{ fontSize: 28 }} /></span>
               <h3>Sustainability</h3>
               <p>Committed to eco-friendly production, zero plastic waste packaging, and ethical workplace practices.</p>
             </div>
             <div className="value-box">
-              <span className="value-icon">⚡</span>
+              <span className="value-icon"><StyleOutlinedIcon style={{ fontSize: 28 }} /></span>
               <h3>Modern Design</h3>
               <p>Minimalist, versatile silhouettes designed to integrate seamlessly into your daily wardrobe.</p>
             </div>
             <div className="value-box">
-              <span className="value-icon">🤝</span>
+              <span className="value-icon"><HandshakeOutlinedIcon style={{ fontSize: 28 }} /></span>
               <h3>Customer First</h3>
               <p>Your satisfaction is our focus—offering seamless shopping, 100% free pan-India delivery, and hassle-free returns.</p>
             </div>

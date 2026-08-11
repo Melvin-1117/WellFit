@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import "./Login.css";
+
 function EmailConfirmed() {
   return (
     <section className="auth-page">
       <div className="auth-card">
 
         <div className="success-icon">
-          ✓
+          <CheckCircleOutlinedIcon style={{ fontSize: 44, color: "#16a34a" }} />
         </div>
 
         <p className="auth-label">

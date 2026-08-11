@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import "./OrderConfirmation.css";
 
 function OrderConfirmation() {
@@ -31,7 +32,7 @@ function OrderConfirmation() {
       <div className="confirmation-card">
 
         <div className="success-icon">
-          ✓
+          <CheckCircleOutlinedIcon style={{ fontSize: 44, color: "#16a34a" }} />
         </div>
 
         <p className="confirmation-label">

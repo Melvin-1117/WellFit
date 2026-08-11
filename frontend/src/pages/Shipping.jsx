@@ -1,4 +1,6 @@
 import { Link } from "react-router-dom";
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
+import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import "./InfoPages.css";
 
 function Shipping() {
@@ -18,7 +20,7 @@ function Shipping() {
           <h2>Shipping & Delivery Timelines</h2>
 
           <div className="free-shipping-highlight">
-            <div className="free-shipping-icon">🚚</div>
+            <div className="free-shipping-icon"><LocalShippingOutlinedIcon style={{ fontSize: 32 }} /></div>
             <div>
               <h3>100% Free Shipping Across India</h3>
               <p>No delivery fees, no minimum cart requirement, and zero hidden charges on any order nationwide.</p>
@@ -34,8 +36,8 @@ function Shipping() {
               <div className="timeline-duration">2 – 3 Business Days</div>
               <p className="timeline-desc">Delhi NCR, Mumbai, Bengaluru, Hyderabad, Chennai, Kolkata, Pune & Ahmedabad.</p>
               <ul className="timeline-features">
-                <li>✓ Express courier dispatch</li>
-                <li>✓ Real-time SMS & WhatsApp updates</li>
+                <li><CheckCircleOutlinedIcon style={{ fontSize: 15, color: "#052659", marginRight: 6, verticalAlign: "middle" }} /> Express courier dispatch</li>
+                <li><CheckCircleOutlinedIcon style={{ fontSize: 15, color: "#052659", marginRight: 6, verticalAlign: "middle" }} /> Real-time SMS & WhatsApp updates</li>
               </ul>
             </div>
 
@@ -47,8 +49,8 @@ function Shipping() {
               <div className="timeline-duration">3 – 5 Business Days</div>
               <p className="timeline-desc">Covering 19,000+ PIN codes across all Indian states and union territories.</p>
               <ul className="timeline-features">
-                <li>✓ Doorstep delivery</li>
-                <li>✓ Safe contactless handover</li>
+                <li><CheckCircleOutlinedIcon style={{ fontSize: 15, color: "#052659", marginRight: 6, verticalAlign: "middle" }} /> Doorstep delivery</li>
+                <li><CheckCircleOutlinedIcon style={{ fontSize: 15, color: "#052659", marginRight: 6, verticalAlign: "middle" }} /> Safe contactless handover</li>
               </ul>
             </div>
 
@@ -60,8 +62,8 @@ function Shipping() {
               <div className="timeline-duration">5 – 7 Business Days</div>
               <p className="timeline-desc">North-East states, Jammu & Kashmir, Ladakh, Andaman & Nicobar, and Lakshadweep.</p>
               <ul className="timeline-features">
-                <li>✓ Speed Post & Air Cargo routing</li>
-                <li>✓ Delivery confirmation OTP</li>
+                <li><CheckCircleOutlinedIcon style={{ fontSize: 15, color: "#052659", marginRight: 6, verticalAlign: "middle" }} /> Speed Post & Air Cargo routing</li>
+                <li><CheckCircleOutlinedIcon style={{ fontSize: 15, color: "#052659", marginRight: 6, verticalAlign: "middle" }} /> Delivery confirmation OTP</li>
               </ul>
             </div>
           </div>
