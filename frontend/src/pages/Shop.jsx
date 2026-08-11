@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import Products from "../components/Products";
+import { API_URL } from "../utils/apiConfig";
 import { supabase } from "../lib/supabase";
 
 function Shop({ category = "all" }) {
   const [productsList, setProductsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
 
   useEffect(() => {
     const fetchProducts = async () => {

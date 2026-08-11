@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { resolveImageUrl } from "../utils/imageUrl";
+import { API_URL } from "../utils/apiConfig";
 import { supabase } from "../lib/supabase";
 
 function ProductDetails() {
@@ -13,8 +14,6 @@ function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [selectedSize, setSelectedSize] = useState("");
   const [quantity, setQuantity] = useState(1);
-
-  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
 
   useEffect(() => {
     const fetchProduct = async () => {

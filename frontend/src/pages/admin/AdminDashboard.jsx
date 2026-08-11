@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
 import { resolveImageUrl } from "../../utils/imageUrl";
+import { API_URL } from "../../utils/apiConfig";
 import "./Admin.css";
 
 function AdminDashboard() {
@@ -21,7 +22,6 @@ function AdminDashboard() {
   const [updatingOrderStatus, setUpdatingOrderStatus] = useState(null);
 
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
 
   // Fetch all admin data (Products, Orders, Stats)
   const fetchAdminData = async (silent = false) => {
@@ -474,65 +474,119 @@ function AdminDashboard() {
               </p>
             </div>
           ) : (
-            <div className="admin-table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Customer</th>
-                    <th>Date</th>
-                    <th>Items</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th>Update Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredOrders.map((order) => (
-                    <tr key={order.id}>
-                      <td>
-                        <strong>#{order.id}</strong>
-                      </td>
-                      <td>
-                        <div>
-                          <strong>{order.customer_name || "Customer"}</strong>
-                        </div>
-                        <div style={{ fontSize: "12px", color: "#6b7280" }}>{order.email}</div>
-                        <div style={{ fontSize: "12px", color: "#6b7280" }}>
-                          {order.city}, {order.state} ({order.pincode})
-                        </div>
-                      </td>
-                      <td>
-                        {order.created_at
-                          ? new Date(order.created_at).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            })
-                          : "Today"}
-                      </td>
-                      <td>
-                        {order.order_items && order.order_items.length > 0 ? (
-                          <div style={{ fontSize: "13px" }}>
-                            {order.order_items.map((item, idx) => (
-                              <div key={idx}>
-                                • {item.product_name} ({item.size}) x{item.quantity}
-                              </div>
-                            ))}
+            <>
+              <div className="admin-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                      <th>Update Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((order) => (
+                      <tr key={order.id}>
+                        <td>
+                          <strong>#{order.id}</strong>
+                        </td>
+                        <td>
+                          <div>
+                            <strong>{order.customer_name || "Customer"}</strong>
                           </div>
-                        ) : (
-                          <span>1 item</span>
-                        )}
-                      </td>
-                      <td>
-                        <strong style={{ color: "#052659" }}>₹{order.total}</strong>
-                      </td>
-                      <td>
-                        <span className={`order-status-badge ${(order.status || "Pending").toLowerCase()}`}>
-                          {order.status || "Pending"}
-                        </span>
-                      </td>
-                      <td>
+                          <div style={{ fontSize: "12px", color: "#6b7280" }}>{order.email}</div>
+                          <div style={{ fontSize: "12px", color: "#6b7280" }}>
+                            {order.city}, {order.state} ({order.pincode})
+                          </div>
+                        </td>
+                        <td>
+                          {order.created_at
+                            ? new Date(order.created_at).toLocaleDateString("en-IN", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })
+                            : "Today"}
+                        </td>
+                        <td>
+                          {order.order_items && order.order_items.length > 0 ? (
+                            <div style={{ fontSize: "13px" }}>
+                              {order.order_items.map((item, idx) => (
+                                <div key={idx}>
+                                  • {item.product_name} ({item.size}) x{item.quantity}
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <span>1 item</span>
+                          )}
+                        </td>
+                        <td>
+                          <strong style={{ color: "#052659" }}>₹{order.total}</strong>
+                        </td>
+                        <td>
+                          <span className={`order-status-badge ${(order.status || "Pending").toLowerCase()}`}>
+                            {order.status || "Pending"}
+                          </span>
+                        </td>
+                        <td>
+                          <select
+                            className="select-status"
+                            value={order.status || "Pending"}
+                            disabled={updatingOrderStatus === order.id}
+                            onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                          >
+                            <option value="Pending">Pending</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Shipped">Shipped</option>
+                            <option value="Delivered">Delivered</option>
+                            <option value="Cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Orders View */}
+              <div className="admin-mobile-cards">
+                {filteredOrders.map((order) => (
+                  <div key={order.id} className="admin-mobile-order-card">
+                    <div className="admin-mobile-order-header">
+                      <span className="admin-mobile-order-id">#{order.id}</span>
+                      <span className={`order-status-badge ${(order.status || "Pending").toLowerCase()}`}>
+                        {order.status || "Pending"}
+                      </span>
+                    </div>
+
+                    <div className="admin-mobile-order-customer">
+                      <strong>{order.customer_name || "Customer"}</strong>
+                      <p>{order.email}</p>
+                      {order.city && (
+                        <p>{order.city}{order.state ? `, ${order.state}` : ""} {order.pincode ? `(${order.pincode})` : ""}</p>
+                      )}
+                    </div>
+
+                    <div className="admin-mobile-order-items">
+                      {order.order_items && order.order_items.length > 0 ? (
+                        order.order_items.map((item, idx) => (
+                          <div key={idx} className="admin-mobile-item-line">
+                            • {item.product_name} ({item.size}) x{item.quantity}
+                          </div>
+                        ))
+                      ) : (
+                        <div>1 item</div>
+                      )}
+                    </div>
+
+                    <div className="admin-mobile-order-footer">
+                      <div className="admin-mobile-order-total">Total: ₹{order.total}</div>
+                      <div className="admin-mobile-order-status-change">
                         <select
                           className="select-status"
                           value={order.status || "Pending"}
@@ -545,12 +599,12 @@ function AdminDashboard() {
                           <option value="Delivered">Delivered</option>
                           <option value="Cancelled">Cancelled</option>
                         </select>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </>
       )}

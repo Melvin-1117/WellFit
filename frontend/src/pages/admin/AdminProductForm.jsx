@@ -1,13 +1,51 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabase";
+import { API_URL } from "../../utils/apiConfig";
+import { resolveImageUrl } from "../../utils/imageUrl";
 import "./Admin.css";
+
+// Helper function to compress image files to lightweight base64 data URLs (~30-80KB)
+const compressImageFile = (file, maxWidth = 800, maxHeight = 800, quality = 0.8) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxWidth || height > maxHeight) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
 
 function AdminProductForm() {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const navigate = useNavigate();
-  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -75,7 +113,7 @@ function AdminProductForm() {
     });
   };
 
-  // Image upload handler (converts file to base64 and sends to backend)
+  // Image upload handler (compresses file to lightweight base64 Data URL)
   const handleImageUpload = async (file) => {
     if (!file) return;
 
@@ -85,8 +123,8 @@ function AdminProductForm() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg("Image file must be smaller than 5MB.");
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg("Image file must be smaller than 10MB.");
       return;
     }
 
@@ -94,20 +132,16 @@ function AdminProductForm() {
       setUploading(true);
       setErrorMsg("");
 
+      const compressedDataUrl = await compressImageFile(file);
+
+      // Set form state immediately with optimized data URL for instant live persistence
+      setFormData((prev) => ({ ...prev, image: compressedDataUrl }));
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!session) {
-        setErrorMsg("Session expired. Please log in again.");
-        return;
-      }
-
-      // Read file as base64
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Data = reader.result;
-
+      if (session) {
         const res = await fetch(`${API_URL}/api/upload`, {
           method: "POST",
           headers: {
@@ -115,31 +149,20 @@ function AdminProductForm() {
             Authorization: `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
-            imageData: base64Data,
+            imageData: compressedDataUrl,
             fileName: file.name,
           }),
         });
 
         const data = await res.json();
-
         if (data.success && data.imageUrl) {
           setFormData((prev) => ({ ...prev, image: data.imageUrl }));
-        } else {
-          setErrorMsg(data.message || "Image upload failed.");
         }
-
-        setUploading(false);
-      };
-
-      reader.onerror = () => {
-        setErrorMsg("Failed to read file.");
-        setUploading(false);
-      };
-
-      reader.readAsDataURL(file);
+      }
     } catch (err) {
       console.error("Upload error:", err);
-      setErrorMsg("Server error uploading image.");
+      setErrorMsg("Error processing image file.");
+    } finally {
       setUploading(false);
     }
   };
@@ -365,14 +388,10 @@ function AdminProductForm() {
             {formData.image && (
               <div className="image-preview-box">
                 <img
-                  src={
-                    formData.image.startsWith("/uploads")
-                      ? `${API_URL}${formData.image}`
-                      : formData.image
-                  }
+                  src={resolveImageUrl(formData.image)}
                   alt="Preview"
                   onError={(e) => {
-                    e.target.src = "https://via.placeholder.com/120x140?text=Invalid+URL";
+                    e.target.src = "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=600&q=80";
                   }}
                 />
               </div>

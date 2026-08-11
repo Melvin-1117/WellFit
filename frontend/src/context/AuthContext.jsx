@@ -6,6 +6,7 @@ import {
 } from "react";
 
 import { supabase } from "../lib/supabase";
+import { API_URL } from "../utils/apiConfig";
 
 const AuthContext = createContext(null);
 
@@ -31,7 +32,6 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
       const token = session?.access_token;
       if (token) {
         const res = await fetch(`${API_URL}/api/auth/profile`, {

@@ -138,10 +138,17 @@ async function verifyAdmin(req) {
   return { isAdmin: true, user };
 }
 
-app.get("/", (req, res) => {
+app.get(["/", "/api", "/api/"], (req, res) => {
   res.json({
     success: true,
-    message: "WellFit backend is running",
+    message: "WellFit backend API is running successfully!",
+    version: "1.0.0",
+    endpoints: {
+      products: "/api/products",
+      orders: "/api/orders",
+      adminOrders: "/api/admin/orders",
+      adminStats: "/api/admin/stats"
+    }
   });
 });
 
@@ -598,6 +605,12 @@ app.put("/api/admin/orders/:id/status", async (req, res) => {
 
     setOrderStatus(id, status);
 
+    // Persist status directly in Supabase orders table
+    await supabase
+      .from("orders")
+      .update({ status })
+      .eq("id", id);
+
     res.json({
       success: true,
       message: "Order status updated successfully",
@@ -822,7 +835,7 @@ app.post("/api/orders", async (req, res) => {
   }
 });
 
-// IMAGE UPLOAD ENDPOINT (Base64)
+// IMAGE UPLOAD ENDPOINT (Base64 Data URL)
 app.post("/api/upload", async (req, res) => {
   try {
     const adminCheck = await verifyAdmin(req);
@@ -842,30 +855,37 @@ app.post("/api/upload", async (req, res) => {
       });
     }
 
-    // Extract base64 data (strip data:image/...;base64, prefix)
-    const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
-    if (!base64Match) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid image format. Please upload a valid image file.",
+    // Support base64 Data URLs and external URLs for Vercel live serverless compatibility
+    if (
+      imageData.startsWith("data:image/") ||
+      imageData.startsWith("http://") ||
+      imageData.startsWith("https://")
+    ) {
+      // Optional disk cache for non-Vercel local environment
+      try {
+        const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
+        if (base64Match && !process.env.VERCEL) {
+          const ext = base64Match[1];
+          const base64Data = base64Match[2];
+          const buffer = Buffer.from(base64Data, "base64");
+          const uniqueName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${ext}`;
+          const filePath = path.join(uploadsDir, uniqueName);
+          fs.writeFileSync(filePath, buffer);
+        }
+      } catch (e) {
+        console.warn("Local disk save skipped:", e.message);
+      }
+
+      return res.json({
+        success: true,
+        message: "Image uploaded successfully",
+        imageUrl: imageData,
       });
     }
 
-    const ext = base64Match[1]; // png, jpg, jpeg, webp
-    const base64Data = base64Match[2];
-    const buffer = Buffer.from(base64Data, "base64");
-
-    const uniqueName = `${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${ext}`;
-    const filePath = path.join(uploadsDir, uniqueName);
-
-    fs.writeFileSync(filePath, buffer);
-
-    const imageUrl = `/uploads/${uniqueName}`;
-
-    res.json({
-      success: true,
-      message: "Image uploaded successfully",
-      imageUrl,
+    return res.status(400).json({
+      success: false,
+      message: "Invalid image format. Please upload a valid image file.",
     });
   } catch (error) {
     console.error("UPLOAD ERROR:", error);
@@ -928,8 +948,10 @@ app.post("/api/coupons/validate", (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`WellFit backend running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`WellFit backend running on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;

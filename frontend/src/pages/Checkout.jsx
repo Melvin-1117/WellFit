@@ -4,11 +4,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import "./Checkout.css";
 
+import { API_URL } from "../utils/apiConfig";
+
 function Checkout() {
   const { cart, clearCart } = useCart();
   const navigate = useNavigate();
-
-  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:5000");
 
   const [formData, setFormData] = useState({
     name: "",
