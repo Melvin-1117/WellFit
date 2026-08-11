@@ -17,6 +17,17 @@ app.use(express.json({ limit: "10mb" }));
 
 // URL Normalizer for Vercel Serverless Function rewrites
 app.use((req, res, next) => {
+  if (req.url.includes("index.js")) {
+    if (req.query && req.query["0"]) {
+      req.url = "/api/" + req.query["0"];
+    } else {
+      const parts = req.url.split("?0=");
+      if (parts[1]) {
+        req.url = "/api/" + decodeURIComponent(parts[1].split("&")[0]);
+      }
+    }
+  }
+
   if (!req.url.startsWith("/api") && !req.url.startsWith("/uploads")) {
     req.url = "/api" + (req.url.startsWith("/") ? "" : "/") + req.url;
   }
