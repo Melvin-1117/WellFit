@@ -212,9 +212,7 @@ function AdminDashboard() {
         });
       }
 
-      const contentType = response.headers.get("content-type") || "";
-
-      if (!response.ok || !contentType.includes("application/pdf")) {
+      if (!response.ok) {
         const text = await response.text().catch(() => "");
         let message = `Failed to generate invoice (${response.status})`;
         try {
@@ -225,6 +223,17 @@ function AdminDashboard() {
             message = "Server returned HTML error page instead of PDF invoice.";
           }
         }
+        throw new Error(message);
+      }
+
+      const contentType = (response.headers.get("content-type") || "").toLowerCase();
+      if (contentType.includes("application/json") || contentType.includes("text/html")) {
+        const text = await response.text().catch(() => "");
+        let message = "Received invalid response format from server.";
+        try {
+          const json = JSON.parse(text);
+          if (json.message) message = json.message;
+        } catch {}
         throw new Error(message);
       }
 
