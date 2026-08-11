@@ -178,7 +178,11 @@ app.use((req, res, next) => {
       const params = new URLSearchParams(queryString);
       const captured = params.get("1") || params.get("0") || params.get("path");
       if (captured) {
-        req.url = "/api/" + captured.replace(/^\//, "");
+        let cleanPath = captured.replace(/^\//, "");
+        if (cleanPath.startsWith("api/")) {
+          cleanPath = cleanPath.substring(4);
+        }
+        req.url = "/api/" + cleanPath;
       }
     }
   }
