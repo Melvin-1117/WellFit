@@ -222,6 +222,9 @@ app.get("/api/auth/profile", async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+});
+
 // INVOICE PDF DOWNLOAD
 async function handleInvoiceDownload(req, res) {
   try {
